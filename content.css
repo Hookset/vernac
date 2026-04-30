@@ -131,6 +131,7 @@
   to   { transform: translateX(0); }
 }
 
+/* Keep this width in sync with SIDEBAR_TOTAL_WIDTH_PX in content.js. */
 #__lens-sidebar-wrapper__ {
   position: fixed !important;
   top: 0 !important;

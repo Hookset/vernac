@@ -19,6 +19,9 @@
     'search','toolbar','menubar','menu','dialog','alertdialog','status','log']);
 
   const CONTAINER_TAGS = new Set(['DIV','SECTION','ARTICLE','MAIN','ASIDE','TD','TH']);
+  const SIDEBAR_IFRAME_WIDTH_PX = 480;
+  const SIDEBAR_CLOSE_STRIP_WIDTH_PX = 16;
+  const SIDEBAR_TOTAL_WIDTH_PX = SIDEBAR_IFRAME_WIDTH_PX + SIDEBAR_CLOSE_STRIP_WIDTH_PX;
 
   // ── State ──────────────────────────────────────────────────────────────────
   let floatingBtn    = null;
@@ -36,6 +39,7 @@
   let sidebarToggleTab = null;
   let previousBodyMarginRight = null;
   let viewMode = 'sidepanel';
+  let floatingBtnEnabled = true;
   const EXTENSION_ORIGIN = chrome.runtime.getURL('').slice(0, -1);
 
   // ── Sidebar management ─────────────────────────────────────────────────────
@@ -81,7 +85,7 @@
     document.body.appendChild(wrapper);
     sidebarFrame = frame;
     previousBodyMarginRight = document.body.style.marginRight;
-    document.body.style.marginRight = '496px'; // 480 iframe + 16 close strip
+    document.body.style.marginRight = `${SIDEBAR_TOTAL_WIDTH_PX}px`;
     updateSidebarToggleTab();
 
     // Tell background to clear the popup so toolbar click won't open it on top
@@ -191,6 +195,20 @@
       if (area !== 'local' || !changes.viewMode) return;
       viewMode = changes.viewMode.newValue || 'sidepanel';
       updateSidebarToggleTab();
+    });
+  }
+
+  async function initFloatingButtonPreference() {
+    try {
+      const d = await chrome.storage.local.get('floatingBtn');
+      floatingBtnEnabled = d.floatingBtn !== false;
+    } catch {}
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.floatingBtn) {
+        floatingBtnEnabled = changes.floatingBtn.newValue !== false;
+        if (!floatingBtnEnabled) hideBtn();
+      }
     });
   }
 
@@ -347,10 +365,7 @@
       const sel  = window.getSelection();
       const text = sel?.toString().trim();
       if (text && text.length > 3 && sel.rangeCount > 0) {
-        try {
-          const d = await chrome.storage.local.get('floatingBtn');
-          if (d.floatingBtn === false) return;
-        } catch {}
+        if (!floatingBtnEnabled) return;
         const range = sel.getRangeAt(0);
         const rect  = range.getBoundingClientRect();
         if (rect.width > 0 || rect.height > 0) showBtn(rect, text);
@@ -598,5 +613,6 @@
   });
 
   initSidebarToggleTab();
+  initFloatingButtonPreference();
 
 })();

@@ -168,7 +168,7 @@ try {
   chrome.alarms.onAlarm.addListener(() => {
     // Re-apply view mode each time the alarm fires — ensures popup state
     // is correct even after Firefox suspends and restarts the background script
-    applyViewMode();
+    applyViewMode().catch(e => debugWarn('keepalive applyViewMode failed', e));
     cleanupExpiredSidebarChannels().catch(e => debugWarn('sidebar channel cleanup failed', e));
   });
 } catch (e) {
@@ -176,7 +176,9 @@ try {
 }
 
 // ── Startup: restore correct popup state ─────────────────────────────────────
-chrome.runtime.onStartup.addListener(applyViewMode);
+chrome.runtime.onStartup.addListener(() => {
+  applyViewMode().catch(e => debugWarn('startup applyViewMode failed', e));
+});
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
@@ -185,7 +187,7 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: ['selection'],
     });
   });
-  applyViewMode();
+  applyViewMode().catch(e => debugWarn('installed applyViewMode failed', e));
 });
 
 async function applyViewMode() {
@@ -204,7 +206,7 @@ async function applyViewMode() {
 }
 
 
-applyViewMode();
+applyViewMode().catch(e => debugWarn('initial applyViewMode failed', e));
 // ── Toolbar icon clicked ──────────────────────────────────────────────────────
 // Fires in two cases:
 //   (a) viewMode=sidepanel → popup is cleared, so this always fires

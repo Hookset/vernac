@@ -47,7 +47,9 @@ async function load() {
       await chrome.storage.session.set({ deeplKey: localPrefs.deeplKey });
       await chrome.storage.local.remove('deeplKey');
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Lens: session storage error', e);
+  }
 }
 
 async function save() {
@@ -129,7 +131,15 @@ function attachListeners() {
     });
   });
 
-  $('back-btn').addEventListener('click', () => window.close());
+  $('back-btn').addEventListener('click', () => {
+    chrome.tabs.getCurrent()
+      .then(tab => {
+        if (tab?.id) return chrome.tabs.remove(tab.id);
+        window.close();
+        return undefined;
+      })
+      .catch(() => window.close());
+  });
 
   document.querySelectorAll('#theme-ctrl .seg').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('#theme-ctrl .seg').forEach(x => x.classList.remove('active'));

@@ -29,6 +29,10 @@ const translationRequestTimes = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (inSidebar) {
+    if (!sidebarChannelId) {
+      document.body.replaceChildren();
+      return;
+    }
     document.documentElement.classList.add('lens-sidebar');
     document.body.classList.add('lens-sidebar');
     const app = document.getElementById('app');
@@ -92,7 +96,9 @@ async function loadPrefs() {
       await chrome.storage.session.set({ deeplKey: localPrefs.deeplKey });
       await chrome.storage.local.remove('deeplKey');
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Lens: session storage error', e);
+  }
 }
 
 async function savePrefs() {
@@ -211,9 +217,11 @@ async function translateDeepL(text, targetLang, apiKey, trackScan = false) {
     throw new Error(`DeepL error ${resp.status}`);
   }
   const data = await resp.json();
+  const result = data.translations?.[0];
+  if (!result?.text) throw new Error('DeepL: empty response');
   return {
-    translated: data.translations[0].text,
-    detectedLang: data.translations[0].detected_source_language?.toLowerCase() || null,
+    translated: result.text,
+    detectedLang: result.detected_source_language?.toLowerCase() || null,
   };
 }
 
