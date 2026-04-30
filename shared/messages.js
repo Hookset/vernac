@@ -1,3 +1,4 @@
+/* exported MSG */
 // Shared message type constants across all extension contexts.
 // background.js keeps its own inline copy — importScripts is unreliable in MV3
 // service workers — keep both in sync when adding new message types.

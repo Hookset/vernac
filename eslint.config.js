@@ -116,6 +116,7 @@ module.exports = [
       'require-yield': 'error',
       'use-isnan': 'error',
       'valid-typeof': 'error',
+      'no-unused-vars': ['error', { args: 'after-used', ignoreRestSiblings: true }],
     },
   },
 ];

@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyTheme(S.theme);
   syncUI();
   attachListeners();
+  const v = $('about-version');
+  if (v) v.textContent = `Lens v${chrome.runtime.getManifest().version}`;
 });
 
 async function load() {

@@ -218,12 +218,20 @@ chrome.runtime.onStartup.addListener(() => {
   updateActionStateForActiveTabs().catch(e => debugWarn('startup action state update failed', e));
 });
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => {
+  chrome.contextMenus.removeAll(async () => {
     chrome.contextMenus.create({
       id: 'lens-translate-selection',
       title: 'Translate with Lens',
       contexts: ['selection'],
     });
+    try {
+      const d = await chrome.storage.local.get('contextMenu');
+      if (d.contextMenu === false) {
+        await chrome.contextMenus.update('lens-translate-selection', { visible: false });
+      }
+    } catch (e) {
+      debugWarn('Failed to restore contextMenu visibility on install', e);
+    }
   });
   applyViewMode().catch(e => debugWarn('installed applyViewMode failed', e));
   updateActionStateForActiveTabs().catch(e => debugWarn('installed action state update failed', e));

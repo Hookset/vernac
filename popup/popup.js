@@ -264,9 +264,6 @@ function attachListeners() {
     if (changes.fontSize?.newValue) { S.fontSize = Number(changes.fontSize.newValue); applyFontSize(); }
   });
 
-  chrome.runtime.onMessage.addListener(msg => {
-    if (msg.type === MSG.CHUNK_CLICKED) highlightOutChunk(msg.chunkId);
-  });
 }
 
 function applyTheme() {
@@ -445,13 +442,13 @@ function prepareScanOutput(chunks) {
   $('scan-footer').classList.remove('hidden');
   $('revert-btn').classList.add('hidden');
 
-  chunks.forEach(c => {
+  const capped = chunks.slice(0, SCAN_CHUNK_CAP);
+  capped.forEach(c => {
     const el = makeChunkEl(c.id, '');
     el.classList.add('skeleton');
     $('output-body').appendChild(el);
   });
 
-  const capped = chunks.slice(0, SCAN_CHUNK_CAP);
   return {
     capped,
     hasCap: chunks.length > SCAN_CHUNK_CAP,
@@ -754,7 +751,7 @@ function openOutput() {
   applyFontSize();
 }
 
-function closeOutput() {
+async function closeOutput() {
   if (S.isTranslating && S.outputMode === 'scan') {
     stopScanTranslation();
   }
@@ -776,9 +773,8 @@ function closeOutput() {
   } else if (inSidebar) {
     postToSidebarHost({ type: MSG.LENS_CLEAR_SCAN });
   } else {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      if (tab?.id) chrome.tabs.sendMessage(tab.id, { type: MSG.CLEAR_SCAN }).catch(() => {});
-    });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+    if (tab?.id) chrome.tabs.sendMessage(tab.id, { type: MSG.CLEAR_SCAN }).catch(() => {});
   }
   updateScanStopButton();
 }

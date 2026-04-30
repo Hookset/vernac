@@ -2,8 +2,9 @@
 (function () {
   'use strict';
 
-  if (window.__lensTranslatorInjected) return;
-  window.__lensTranslatorInjected = true;
+  const _lensGuard = Symbol.for('lens-translator.injected');
+  if (window[_lensGuard]) return;
+  window[_lensGuard] = true;
 
   // ── Scan constants ─────────────────────────────────────────────────────────
   const SCAN_SELECTOR = [
@@ -27,7 +28,6 @@
   let floatingBtn    = null;
   let selectionTimer = null;
   let lastText       = '';
-  let lastRect       = null;
   let scanChunks     = [];
   let originalNodeMap = new Map();
   let sidebarFrame   = null;
@@ -129,8 +129,8 @@
   }
 
   function toggleSidebar() {
-    if (sidebarFrame) closeSidebar();
-    else openSidebar();
+    if (sidebarFrame) closeSidebar().catch(() => {});
+    else openSidebar().catch(() => {});
   }
 
   function createSidebarToggleTab() {
@@ -187,7 +187,7 @@
     try {
       const d = await chrome.storage.local.get('viewMode');
       if (d.viewMode) viewMode = d.viewMode;
-    } catch {}
+    } catch (e) { console.warn('[Lens] Failed to load viewMode pref', e); }
 
     updateSidebarToggleTab();
 
@@ -202,7 +202,7 @@
     try {
       const d = await chrome.storage.local.get('floatingBtn');
       floatingBtnEnabled = d.floatingBtn !== false;
-    } catch {}
+    } catch (e) { console.warn('[Lens] Failed to load floatingBtn pref', e); }
 
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === 'local' && changes.floatingBtn) {
@@ -286,7 +286,7 @@
         [channel.port2]
       );
     } catch {
-      closeSidebar();
+      closeSidebar().catch(() => {});
     }
   }
 
@@ -316,8 +316,9 @@
   // ── Floating button ────────────────────────────────────────────────────────
   function getOrCreateBtn() {
     if (floatingBtn) return floatingBtn;
-    floatingBtn = document.createElement('div');
+    floatingBtn = document.createElement('button');
     floatingBtn.id = '__lens-floating-btn__';
+    floatingBtn.type = 'button';
     floatingBtn.appendChild(createSvgIcon('13', '13', [
       ['circle', { cx: '11', cy: '11', r: '7' }],
       ['line', { x1: '16.5', y1: '16.5', x2: '21', y2: '21' }],
@@ -335,7 +336,6 @@
 
   function showBtn(rect, text) {
     lastText = text;
-    lastRect = rect;
     const btn = getOrCreateBtn();
     const sx = window.scrollX, sy = window.scrollY, bw = 112;
     let x = rect.left + sx + rect.width / 2 - bw / 2;
