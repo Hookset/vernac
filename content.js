@@ -26,7 +26,7 @@
   let lastText       = '';
   let lastRect       = null;
   let scanChunks     = [];
-  let originalHTMLMap = new Map();
+  let originalNodeMap = new Map();
   let sidebarFrame   = null;
   let sidebarReady   = false;
   let pendingMessage = null; // queued until sidebar signals ready
@@ -66,10 +66,9 @@
     const closeStrip = document.createElement('button');
     closeStrip.id = '__lens-sidebar-close__';
     closeStrip.title = 'Close Lens';
-    closeStrip.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <path d="M15 18l-6-6 6-6"/>
-    </svg>`;
+    closeStrip.appendChild(createSvgIcon('14', '14', [
+      ['path', { d: 'M15 18l-6-6 6-6' }],
+    ]));
     closeStrip.addEventListener('click', closeSidebar);
 
     const frame = document.createElement('iframe');
@@ -153,6 +152,25 @@
     sidebarToggleTab.appendChild(svg);
     sidebarToggleTab.addEventListener('click', () => openSidebar());
     document.documentElement.appendChild(sidebarToggleTab);
+  }
+
+  function createSvgIcon(width, height, children) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2.5');
+    svg.setAttribute('stroke-linecap', 'round');
+
+    children.forEach(([tag, attrs]) => {
+      const child = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      Object.entries(attrs).forEach(([name, value]) => child.setAttribute(name, value));
+      svg.appendChild(child);
+    });
+
+    return svg;
   }
 
   function updateSidebarToggleTab() {
@@ -282,15 +300,15 @@
     if (floatingBtn) return floatingBtn;
     floatingBtn = document.createElement('div');
     floatingBtn.id = '__lens-floating-btn__';
-    floatingBtn.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <circle cx="11" cy="11" r="7"/>
-        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
-        <line x1="8" y1="11" x2="14" y2="11"/>
-        <line x1="11" y1="8" x2="11" y2="14"/>
-      </svg>
-      <span>Translate</span>`;
+    floatingBtn.appendChild(createSvgIcon('13', '13', [
+      ['circle', { cx: '11', cy: '11', r: '7' }],
+      ['line', { x1: '16.5', y1: '16.5', x2: '21', y2: '21' }],
+      ['line', { x1: '8', y1: '11', x2: '14', y2: '11' }],
+      ['line', { x1: '11', y1: '8', x2: '11', y2: '14' }],
+    ]));
+    const label = document.createElement('span');
+    label.textContent = 'Translate';
+    floatingBtn.appendChild(label);
     floatingBtn.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
     floatingBtn.addEventListener('click', onBtnClick);
     document.body.appendChild(floatingBtn);
@@ -385,7 +403,7 @@
       el.setAttribute('data-lens-chunk', String(i));
       el.classList.add('__lens-chunk__');
       el.addEventListener('click', onPageChunkClick);
-      scanChunks.push({ id: i, element: el, originalHTML: el.innerHTML });
+      scanChunks.push({ id: i, element: el });
     });
     return scanChunks.map(c => ({ id: c.id, text: (c.element.innerText || '').trim() }));
   }
@@ -401,7 +419,7 @@
       el.setAttribute('data-lens-chunk', String(id));
       el.classList.add('__lens-chunk__');
       el.addEventListener('click', onPageChunkClick);
-      scanChunks.push({ id, element: el, originalHTML: el.innerHTML });
+      scanChunks.push({ id, element: el });
       newChunks.push({ id, text: (el.innerText || '').trim() });
     });
     return newChunks;
@@ -409,7 +427,7 @@
 
   function clearScan() {
     stopWatchingForNewContent();
-    if (originalHTMLMap.size > 0) {
+    if (originalNodeMap.size > 0) {
       revertInPlace();
     }
     scanChunks.forEach(({ element }) => {
@@ -418,7 +436,7 @@
       element.removeEventListener('click', onPageChunkClick);
     });
     scanChunks = [];
-    originalHTMLMap.clear();
+    originalNodeMap.clear();
   }
 
   function onPageChunkClick(e) {
@@ -451,7 +469,7 @@
       if (!Number.isFinite(normalizedId)) return;
       const chunk = scanChunks.find(c => c.id === normalizedId);
       if (!chunk) return;
-      if (!originalHTMLMap.has(normalizedId)) originalHTMLMap.set(normalizedId, chunk.element.innerHTML);
+      if (!originalNodeMap.has(normalizedId)) originalNodeMap.set(normalizedId, cloneChildNodes(chunk.element));
       // Replace text nodes only — preserves <a> hrefs, <img> tags, and all attributes
       replaceTextNodes(chunk.element, translated);
       chunk.element.classList.add('__lens-in-place__');
@@ -484,17 +502,21 @@
     }
   }
 
+  function cloneChildNodes(el) {
+    return Array.from(el.childNodes, node => node.cloneNode(true));
+  }
+
   function revertInPlace() {
-    originalHTMLMap.forEach((html, id) => {
+    originalNodeMap.forEach((nodes, id) => {
       const normalizedId = Number(id);
       const chunk = scanChunks.find(c => c.id === normalizedId);
       const targetEl = chunk?.element || document.querySelector(`[data-lens-chunk="${normalizedId}"]`);
       if (targetEl) {
-        targetEl.innerHTML = html;
+        targetEl.replaceChildren(...nodes.map(node => node.cloneNode(true)));
         targetEl.classList.remove('__lens-in-place__');
       }
     });
-    originalHTMLMap.clear();
+    originalNodeMap.clear();
   }
 
   // ── New content detection (for Scan More) ────────────────────────────────────

@@ -28,11 +28,18 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "lens-translator@lens",
-      "strict_min_version": "131.0"
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": [
+          "websiteContent"
+        ],
+        "optional": [
+          "authenticationInfo"
+        ]
+      }
     }
   },
   "background": {
-    "service_worker": "background.js",
     "scripts": [
       "background.js"
     ]

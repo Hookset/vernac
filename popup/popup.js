@@ -433,7 +433,7 @@ function prepareScanOutput(chunks) {
   openOutput();
   $('out-progress').textContent = `0 / ${chunks.length}`;
   $('output-loader').classList.remove('hidden');
-  $('output-body').innerHTML = '';
+  $('output-body').replaceChildren();
   $('scan-footer').classList.remove('hidden');
   $('revert-btn').classList.add('hidden');
 
@@ -685,7 +685,7 @@ async function runTranslation(chunks, mode) {
     openOutput();
     $('out-progress').textContent = chunks.length > 1 ? `0 / ${chunks.length}` : '';
     $('output-loader').classList.remove('hidden');
-    $('output-body').innerHTML = '';
+    $('output-body').replaceChildren();
     $('scan-footer').classList.add('hidden');
 
     let full = '';
@@ -751,7 +751,7 @@ function closeOutput() {
     stopScanTranslation();
   }
   $('output-wrap').classList.add('hidden');
-  $('output-body').innerHTML = '';
+  $('output-body').replaceChildren();
   $('output-loader').classList.add('hidden');
   $('scan-footer').classList.add('hidden');
   setPopupOutputLayout(false);
