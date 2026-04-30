@@ -56,6 +56,43 @@ function debugWarn(...args) {
   }
 }
 
+function isSettingsPageUrl(url) {
+  if (!url) return false;
+  const settingsUrl = chrome.runtime.getURL('popup/settings.html');
+  return url === settingsUrl || url.startsWith(`${settingsUrl}?`) || url.startsWith(`${settingsUrl}#`);
+}
+
+async function updateActionStateForTab(tabId, url) {
+  if (!tabId) return;
+  try {
+    if (isSettingsPageUrl(url)) {
+      await chrome.action.disable(tabId);
+    } else {
+      await chrome.action.enable(tabId);
+    }
+  } catch (e) {
+    debugWarn('Failed to update toolbar action state', e);
+  }
+}
+
+async function updateActionStateForActiveTab(activeInfo) {
+  try {
+    const tab = await chrome.tabs.get(activeInfo.tabId);
+    await updateActionStateForTab(tab.id, tab.url);
+  } catch (e) {
+    debugWarn('Failed to update active toolbar action state', e);
+  }
+}
+
+async function updateActionStateForActiveTabs() {
+  try {
+    const tabs = await chrome.tabs.query({ active: true });
+    await Promise.all(tabs.map(tab => updateActionStateForTab(tab.id, tab.url)));
+  } catch (e) {
+    debugWarn('Failed to update active toolbar action states', e);
+  }
+}
+
 function delay(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -178,6 +215,7 @@ try {
 // ── Startup: restore correct popup state ─────────────────────────────────────
 chrome.runtime.onStartup.addListener(() => {
   applyViewMode().catch(e => debugWarn('startup applyViewMode failed', e));
+  updateActionStateForActiveTabs().catch(e => debugWarn('startup action state update failed', e));
 });
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
@@ -188,6 +226,17 @@ chrome.runtime.onInstalled.addListener(() => {
     });
   });
   applyViewMode().catch(e => debugWarn('installed applyViewMode failed', e));
+  updateActionStateForActiveTabs().catch(e => debugWarn('installed action state update failed', e));
+});
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+  updateActionStateForActiveTab(activeInfo);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url || tab.active) {
+    updateActionStateForTab(tabId, changeInfo.url || tab.url);
+  }
 });
 
 async function applyViewMode() {
@@ -207,6 +256,7 @@ async function applyViewMode() {
 
 
 applyViewMode().catch(e => debugWarn('initial applyViewMode failed', e));
+updateActionStateForActiveTabs().catch(e => debugWarn('initial action state update failed', e));
 // ── Toolbar icon clicked ──────────────────────────────────────────────────────
 // Fires in two cases:
 //   (a) viewMode=sidepanel → popup is cleared, so this always fires
@@ -214,6 +264,10 @@ applyViewMode().catch(e => debugWarn('initial applyViewMode failed', e));
 //       (we clear popup when sidebar opens so this fires to toggle it off)
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab?.id) return;
+  if (isSettingsPageUrl(tab.url)) {
+    await updateActionStateForTab(tab.id, tab.url);
+    return;
+  }
   try {
     await sendMessageWithRetry(tab.id, { type: MSG.TOGGLE_SIDEBAR });
   } catch (e) {
