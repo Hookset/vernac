@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lens Translator</title>
+  <link rel="stylesheet" href="theme-tokens.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ────────────────────────────────────────────────────────── -->
+  <header id="header">
+    <div class="logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+        <line x1="11" y1="8" x2="11" y2="14"/>
+      </svg>
+      Lens
+    </div>
+
+    <div class="lang-bar">
+      <span id="detected-lang" class="detected-lang" title="Detected source language">auto</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      <select id="target-lang" title="Translate into…">
+        <option value="af">Afrikaans</option>
+        <option value="sq">Albanian</option>
+        <option value="ar">Arabic</option>
+        <option value="hy">Armenian</option>
+        <option value="az">Azerbaijani</option>
+        <option value="eu">Basque</option>
+        <option value="be">Belarusian</option>
+        <option value="bn">Bengali</option>
+        <option value="bs">Bosnian</option>
+        <option value="bg">Bulgarian</option>
+        <option value="ca">Catalan</option>
+        <option value="zh">Chinese (Simplified)</option>
+        <option value="zh-TW">Chinese (Traditional)</option>
+        <option value="hr">Croatian</option>
+        <option value="cs">Czech</option>
+        <option value="da">Danish</option>
+        <option value="nl">Dutch</option>
+        <option value="en" selected>English</option>
+        <option value="eo">Esperanto</option>
+        <option value="et">Estonian</option>
+        <option value="fi">Finnish</option>
+        <option value="fr">French</option>
+        <option value="gl">Galician</option>
+        <option value="ka">Georgian</option>
+        <option value="de">German</option>
+        <option value="el">Greek</option>
+        <option value="gu">Gujarati</option>
+        <option value="ht">Haitian Creole</option>
+        <option value="he">Hebrew</option>
+        <option value="hi">Hindi</option>
+        <option value="hu">Hungarian</option>
+        <option value="is">Icelandic</option>
+        <option value="id">Indonesian</option>
+        <option value="ga">Irish</option>
+        <option value="it">Italian</option>
+        <option value="ja">Japanese</option>
+        <option value="kn">Kannada</option>
+        <option value="kk">Kazakh</option>
+        <option value="ko">Korean</option>
+        <option value="la">Latin</option>
+        <option value="lv">Latvian</option>
+        <option value="lt">Lithuanian</option>
+        <option value="mk">Macedonian</option>
+        <option value="ms">Malay</option>
+        <option value="ml">Malayalam</option>
+        <option value="mt">Maltese</option>
+        <option value="mr">Marathi</option>
+        <option value="mn">Mongolian</option>
+        <option value="ne">Nepali</option>
+        <option value="no">Norwegian</option>
+        <option value="fa">Persian</option>
+        <option value="pl">Polish</option>
+        <option value="pt">Portuguese</option>
+        <option value="pa">Punjabi</option>
+        <option value="ro">Romanian</option>
+        <option value="ru">Russian</option>
+        <option value="sr">Serbian</option>
+        <option value="si">Sinhala</option>
+        <option value="sk">Slovak</option>
+        <option value="sl">Slovenian</option>
+        <option value="es">Spanish</option>
+        <option value="sw">Swahili</option>
+        <option value="sv">Swedish</option>
+        <option value="tl">Tagalog</option>
+        <option value="ta">Tamil</option>
+        <option value="te">Telugu</option>
+        <option value="th">Thai</option>
+        <option value="tr">Turkish</option>
+        <option value="uk">Ukrainian</option>
+        <option value="ur">Urdu</option>
+        <option value="uz">Uzbek</option>
+        <option value="vi">Vietnamese</option>
+        <option value="cy">Welsh</option>
+        <option value="yi">Yiddish</option>
+      </select>
+    </div>
+
+    <button id="settings-btn" class="settings-btn" title="Settings" aria-label="Settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ── Mode Tabs ─────────────────────────────────────────────────────── -->
+  <div id="tabs" role="tablist">
+    <button class="tab active" data-tab="paste" role="tab" aria-selected="true">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <rect width="14" height="14" x="8" y="8" rx="2"/>
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+      Paste
+    </button>
+    <button class="tab" data-tab="selection" role="tab" aria-selected="false">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M3 12h18M3 6h18M3 18h12"/>
+      </svg>
+      Selection
+    </button>
+    <button class="tab" data-tab="scan" role="tab" aria-selected="false">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M3 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3
+                 M21 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/>
+      </svg>
+      Scan Page
+    </button>
+  </div>
+
+  <!-- ── Main ──────────────────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Paste Panel -->
+    <section id="panel-paste" class="panel active" role="tabpanel">
+      <div class="input-wrap">
+        <textarea
+          id="paste-input"
+          placeholder="Paste or type text to translate… (Ctrl+Enter to translate)"
+          spellcheck="false"
+          autocomplete="off"
+          rows="4"></textarea>
+        <div class="input-meta">
+          <span id="char-count" class="char-count">0</span>
+          <button id="paste-clear" class="micro-btn hidden" title="Clear">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="3">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button id="paste-btn" class="primary-btn" disabled>
+        Translate
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </section>
+
+    <!-- Selection Panel -->
+    <section id="panel-selection" class="panel" role="tabpanel">
+      <div class="empty-state" id="selection-empty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" class="empty-icon">
+          <path d="M3 12h18M3 6h18M3 18h12"/>
+        </svg>
+        <p>Select text on the page — a <strong>Translate</strong> button will appear.</p>
+        <p class="hint">You can also right-click any selection and choose <em>Translate with Lens</em>.</p>
+      </div>
+
+      <div id="selection-loaded" class="hidden">
+        <div class="preview-card">
+          <span class="preview-label">Selected text</span>
+          <p id="selection-preview-text"></p>
+        </div>
+        <button id="selection-btn" class="primary-btn">
+          Translate Selection
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Scan Panel -->
+    <section id="panel-scan" class="panel" role="tabpanel">
+      <div id="scan-setup">
+        <div class="empty-state">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5" class="empty-icon">
+            <path d="M3 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3
+                     M21 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <p>Scan the full page. Translated chunks are linked — click any to jump to its source.</p>
+        </div>
+
+        <div class="option-card">
+          <label class="toggle-row" for="in-place-toggle">
+            <div class="toggle-info">
+              <span class="toggle-label">In-place mode</span>
+              <span class="toggle-desc">Replace text directly on the page</span>
+            </div>
+            <div class="toggle-track">
+              <input type="checkbox" id="in-place-toggle" role="switch">
+              <span class="toggle-thumb"></span>
+            </div>
+          </label>
+          <div id="in-place-warning" class="warning-row hidden">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3
+                       L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Experimental — may not work correctly on all sites
+          </div>
+        </div>
+
+        <button id="scan-btn" class="primary-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <path d="M3 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3
+                     M21 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/>
+          </svg>
+          Scan &amp; Translate Page
+        </button>
+        <button id="scan-stop-btn" class="ghost-btn" type="button" disabled>
+          Stop Translation
+        </button>
+      </div>
+    </section>
+
+    <!-- Output (shared across all modes) -->
+    <div id="output-wrap" class="hidden">
+      <div class="output-topbar">
+        <div class="output-meta">
+          <span id="out-provider" class="out-provider"></span>
+          <span id="out-progress" class="out-progress"></span>
+        </div>
+        <div class="output-actions">
+          <button id="copy-btn" class="icon-btn" title="Copy all">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <rect width="14" height="14" x="8" y="8" rx="2"/>
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+          </button>
+          <button id="output-close" class="icon-btn" title="Close">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="output-body"></div>
+
+      <div id="output-loader" class="loader-bar hidden">
+        <div class="loader-fill"></div>
+      </div>
+
+      <div id="scan-footer" class="hidden">
+        <button id="revert-btn" class="ghost-btn hidden">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>
+          </svg>
+          Revert page
+        </button>
+        <button id="rescan-btn" class="ghost-btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+          </svg>
+          Scan again
+        </button>
+        <button id="scanmore-btn" class="ghost-btn hidden">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          Scan more
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+</div><!-- #app -->
+<script src="../shared/messages.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

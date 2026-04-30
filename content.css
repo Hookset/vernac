@@ -1,0 +1,175 @@
+/* content.css — Lens Translator
+   Injected into every page. Minimal footprint, scoped by unique IDs/classes.
+   All chunk/button classes use double underscores to avoid collisions. */
+
+/* ── Floating translate button ──────────────────────────────────────────────── */
+#__lens-floating-btn__ {
+  all: initial;
+  position: absolute !important;
+  z-index: 2147483647 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 11px !important;
+  background: #1e1b4b !important;
+  color: #e0e7ff !important;
+  border-radius: 20px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 0 0 1px rgba(99,102,241,0.35) !important;
+  opacity: 0 !important;
+  transform: translateY(5px) scale(0.94) !important;
+  transition: opacity 0.14s ease, transform 0.14s ease !important;
+  pointer-events: none !important;
+}
+
+#__lens-floating-btn__.visible {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: all !important;
+}
+
+#__lens-floating-btn__:hover {
+  background: #312e81 !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(129,140,248,0.45) !important;
+}
+
+#__lens-floating-btn__ svg {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Chunk highlight (scan mode) ────────────────────────────────────────────── */
+.__lens-chunk__ {
+  cursor: pointer !important;
+  border-radius: 3px !important;
+  transition: background-color 0.18s ease, outline 0.18s ease !important;
+  outline: 1.5px solid transparent !important;
+  outline-offset: 2px !important;
+}
+
+.__lens-chunk__:hover {
+  background-color: rgba(99, 102, 241, 0.09) !important;
+  outline-color: rgba(99, 102, 241, 0.22) !important;
+}
+
+.__lens-chunk-active__ {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+  outline: 2px solid rgba(99, 102, 241, 0.55) !important;
+  outline-offset: 2px !important;
+}
+
+/* Right-edge sidebar opener. Visible only when sidebar mode is active. */
+#__lens-sidebar-toggle__ {
+  all: initial !important;
+  position: fixed !important;
+  top: 50% !important;
+  right: 10px !important;
+  z-index: 2147483638 !important;
+  width: 30px !important;
+  height: 54px !important;
+  transform: translate(12px, -50%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(28, 32, 48, 0.9) !important;
+  color: #818cf8 !important;
+  border: 1px solid rgba(99,102,241,0.28) !important;
+  border-right: 1px solid rgba(99,102,241,0.2) !important;
+  border-radius: 8px 0 0 8px !important;
+  box-shadow: -3px 4px 16px rgba(0,0,0,0.25) !important;
+  cursor: pointer !important;
+  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease, color 0.16s ease !important;
+}
+
+#__lens-sidebar-toggle__.visible {
+  opacity: 0.68 !important;
+  pointer-events: auto !important;
+}
+
+#__lens-sidebar-toggle__.visible:hover,
+#__lens-sidebar-toggle__.visible:focus-visible {
+  transform: translate(0, -50%) !important;
+  opacity: 1 !important;
+  background: #222638 !important;
+  color: #e0e7ff !important;
+  outline: none !important;
+}
+
+#__lens-sidebar-toggle__ svg {
+  display: block !important;
+}
+
+/* ── In-place translated text ───────────────────────────────────────────────── */
+.__lens-in-place__ {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+  outline: 1.5px solid rgba(34, 197, 94, 0.25) !important;
+  outline-offset: 2px !important;
+  border-radius: 3px !important;
+}
+
+/* Active highlight must override in-place green when a chunk is clicked */
+.__lens-in-place__.__lens-chunk-active__ {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+  outline: 2px solid rgba(99, 102, 241, 0.55) !important;
+}
+
+
+
+/* ── Sidebar wrapper + close strip ──────────────────────────────────────────── */
+@keyframes __lens-sidebar-in__ {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+#__lens-sidebar-wrapper__ {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 496px !important;
+  height: 100vh !important;
+  z-index: 2147483640 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  animation: __lens-sidebar-in__ 0.1s cubic-bezier(0.4,0,0.2,1) !important;
+  box-shadow: -6px 0 24px rgba(0,0,0,0.35) !important;
+}
+
+#__lens-sidebar-close__ {
+  all: initial !important;
+  width: 16px !important;
+  flex-shrink: 0 !important;
+  height: 100% !important;
+  background: #1c2030 !important;
+  border: none !important;
+  border-right: 1px solid rgba(99,102,241,0.25) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #5a6285 !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+#__lens-sidebar-close__:hover {
+  background: #222638 !important;
+  color: #818cf8 !important;
+}
+#__lens-sidebar-close__ svg {
+  display: block !important;
+}
+
+#__lens-sidebar-frame__ {
+  flex: 1 !important;
+  height: 100% !important;
+  border: none !important;
+  background: #161922 !important;
+}

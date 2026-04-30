@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lens — Settings</title>
+  <link rel="stylesheet" href="theme-tokens.css">
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --r:       7px;
+      --r-sm:    5px;
+      --sidebar: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Mono', monospace;
+      font-size: 11px;
+      background: var(--bg3);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────────── */
+    #shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar);
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 16px 14px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo svg { color: var(--accent); flex-shrink: 0; }
+
+    .sidebar-nav {
+      padding: 10px 8px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-section-title {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text3);
+      padding: 10px 8px 5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 7px 10px;
+      background: transparent;
+      border: none;
+      border-radius: var(--r-sm);
+      color: var(--text2);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.13s, color 0.13s;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active {
+      background: var(--accent-d);
+      color: var(--accent-h);
+      font-weight: 500;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+    .nav-item.active svg { opacity: 1; color: var(--accent); }
+
+    .sidebar-back {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: transparent;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      color: var(--text3);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.13s;
+      text-align: left;
+    }
+    .sidebar-back:hover { color: var(--text2); }
+
+    /* ── Content area ───────────────────────────────────────────────────────── */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+    #content::-webkit-scrollbar { width: 5px; }
+    #content::-webkit-scrollbar-track { background: transparent; }
+    #content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    .section {
+      display: none;
+      padding: 32px 44px;
+      max-width: 780px;
+    }
+    .section.active { display: block; }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .section-subtitle {
+      font-size: 13.5px;
+      color: var(--text3);
+      margin-bottom: 24px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text3);
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Rows ────────────────────────────────────────────────────────────────── */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .row:last-child { border-bottom: none; }
+
+    .row-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .row-col:last-child { border-bottom: none; }
+
+    .row-label { font-size: 14px; font-weight: 500; color: var(--text); }
+    .row-desc  { font-size: 12.5px; color: var(--text3); margin-top: 3px; }
+
+    /* ── Toggle ──────────────────────────────────────────────────────────────── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .toggle-wrap:last-child { border-bottom: none; }
+    .toggle-left { flex: 1; min-width: 0; }
+
+    .toggle-track {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle-track input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-thumb {
+      position: absolute;
+      inset: 0;
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-thumb::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      background: var(--text3);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-track input:checked + .toggle-thumb { background: var(--accent); border-color: var(--accent); }
+    .toggle-track input:checked + .toggle-thumb::after { transform: translateX(16px); background: white; }
+
+    /* ── Segmented control ───────────────────────────────────────────────────── */
+    .seg-ctrl {
+      display: flex;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text2);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.13s;
+      white-space: nowrap;
+    }
+    .seg.active {
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    /* ── Font size ───────────────────────────────────────────────────────────── */
+    .size-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    #font-val { min-width: 22px; text-align: center; font-weight: 600; color: var(--text); }
+    .micro-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 9px;
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text2);
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.13s, color 0.13s;
+    }
+    .micro-btn:hover { background: var(--border2); color: var(--text); }
+    .micro-btn.accent { background: var(--accent); border-color: var(--accent); color: white; }
+    .micro-btn.accent:hover { background: var(--accent-h); }
+
+    /* ── Select ──────────────────────────────────────────────────────────────── */
+    select {
+      padding: 6px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-size: 12.5px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      min-width: 160px;
+    }
+    select:focus { border-color: var(--accent); }
+
+    /* ── Provider status ─────────────────────────────────────────────────────── */
+    .provider-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .provider-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+      box-shadow: 0 0 6px var(--success);
+    }
+    .provider-dot.dim { background: var(--text3); box-shadow: none; }
+    .provider-name-big { font-size: 14px; font-weight: 600; color: var(--text); }
+    .provider-sub-text { font-size: 11.5px; color: var(--text3); margin-top: 1px; }
+    .provider-pill {
+      margin-left: auto;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 9px;
+      background: rgba(34,197,94,0.12);
+      color: var(--success);
+      border-radius: 20px;
+    }
+    .provider-pill.google {
+      background: var(--accent-d);
+      color: var(--accent-h);
+    }
+
+    /* ── Key input ───────────────────────────────────────────────────────────── */
+    .key-input-row {
+      display: flex;
+      gap: 6px;
+    }
+    .key-input-row input {
+      flex: 1;
+      min-width: 0;
+      padding: 7px 11px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-size: 12px;
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .key-input-row input:focus { border-color: var(--accent); }
+
+    .key-status {
+      font-size: 12px;
+      color: var(--text3);
+      min-height: 18px;
+    }
+    .key-status.ok  { color: var(--success); }
+    .key-status.err { color: var(--err); }
+
+    /* ── Info / warn boxes ───────────────────────────────────────────────────── */
+    .info-box {
+      padding: 10px 14px;
+      background: var(--accent-d);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .warn-box {
+      display: flex;
+      gap: 9px;
+      padding: 10px 14px;
+      background: var(--warn-bg);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      color: var(--warn);
+      line-height: 1.55;
+    }
+    .warn-box svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── About section ───────────────────────────────────────────────────────── */
+    .about-version {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .about-tagline {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 24px;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .about-tile {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 20px;
+      min-width: 0;
+    }
+    .about-tile-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 6px; font-weight: 600; }
+    .about-tile-value { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* ── Badge ────────────────────────────────────────────────────────────────── */
+    .badge-beta {
+      font-size: 9px; font-weight: 700;
+      background: var(--warn); color: white;
+      padding: 1px 5px; border-radius: 3px;
+      vertical-align: middle;
+    }
+    .hint { font-size: 11.5px; color: var(--text3); line-height: 1.55; }
+  </style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+        <line x1="11" y1="8" x2="11" y2="14"/>
+      </svg>
+      Settings
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">General</div>
+
+      <button class="nav-item active" data-section="appearance">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+        Appearance
+      </button>
+
+      <button class="nav-item" data-section="translation">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+          <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+        Translation
+      </button>
+
+      <button class="nav-item" data-section="behavior">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Behavior
+      </button>
+
+      <button class="nav-item" data-section="language">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        Language
+      </button>
+
+      <div class="nav-section-title" style="margin-top:8px">Info</div>
+
+      <button class="nav-item" data-section="about">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        About
+      </button>
+    </nav>
+
+    <button class="sidebar-back" id="back-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to Lens
+    </button>
+  </aside>
+
+  <!-- ── Content ──────────────────────────────────────────────────────────── -->
+  <main id="content">
+
+    <!-- Appearance -->
+    <div class="section active" id="section-appearance">
+      <div class="section-title">Appearance</div>
+      <div class="section-subtitle">Customise how Lens looks.</div>
+
+      <div class="card">
+        <div class="card-title">Theme</div>
+        <div class="row">
+          <div>
+            <div class="row-label">Colour scheme</div>
+            <div class="row-desc">Choose between light, dark, or follow your system setting</div>
+          </div>
+          <div class="seg-ctrl" id="theme-ctrl">
+            <button class="seg" data-value="light">Light</button>
+            <button class="seg active" data-value="dark">Dark</button>
+            <button class="seg" data-value="system">System</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Typography</div>
+        <div class="row">
+          <div>
+            <div class="row-label">Output font size</div>
+            <div class="row-desc">Size of translated text in the popup</div>
+          </div>
+          <div class="size-ctrl">
+            <button id="font-down" class="micro-btn">A−</button>
+            <span id="font-val">14</span>px
+            <button id="font-up" class="micro-btn">A+</button>
+          </div>
+        </div>
+      </div>
+      <div class="row-col" style="background:var(--bg3);border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3)">Preview</div>
+        <p id="font-preview" style="font-size:14px;line-height:1.7;color:var(--text2)">
+          The quick brown fox jumps over the lazy dog. 狐が怠け者の犬を飛び越えた。
+        </p>
+      </div>
+    </div>
+
+    <!-- Translation -->
+    <div class="section" id="section-translation">
+      <div class="section-title">Translation</div>
+      <div class="section-subtitle">Configure your translation provider.</div>
+
+      <div class="card">
+        <div class="card-title">Active Provider</div>
+        <div class="provider-status">
+          <div class="provider-dot" id="provider-dot"></div>
+          <div>
+            <div class="provider-name-big" id="provider-name">Google Translate</div>
+            <div class="provider-sub-text" id="provider-sub">Free for all users · No account required</div>
+          </div>
+          <span class="provider-pill google" id="provider-pill">Active</span>
+        </div>
+        <div class="row-col">
+          <div class="info-box" id="provider-info">
+            Lens uses Google Translate by default. It is completely free for all users and requires
+            no account or sign-up. Translation requests are sent directly from your browser to Google's API.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">DeepL API Key <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0"> — optional upgrade</span></div>
+        <div class="row-col">
+          <p class="hint" style="font-size:13px;line-height:1.6;color:var(--text2)">
+            For higher-quality translations, you can provide your own DeepL API key. When set,
+            Lens will use DeepL instead of Google Translate. Note that while DeepL generally
+            produces better results, no machine translation is perfect.
+          </p>
+          <div class="key-input-row">
+            <input type="password" id="deepl-input"
+                   placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx"
+                   autocomplete="off" spellcheck="false">
+            <button id="key-show" class="micro-btn" title="Show / hide">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button id="key-clear" class="micro-btn">Clear</button>
+            <button id="key-save" class="micro-btn accent">Save</button>
+          </div>
+          <div id="key-status" class="key-status"></div>
+          <p class="hint">
+            Free keys end in <code>:fx</code> · 500,000 characters/month free ·
+            Get yours at <a href="https://www.deepl.com/account/summary" target="_blank" rel="noopener">deepl.com/account</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Behavior -->
+    <div class="section" id="section-behavior">
+      <div class="section-title">Behavior</div>
+      <div class="section-subtitle">Control how Lens interacts with pages.</div>
+
+      <div class="card">
+        <div class="card-title">Page Integration</div>
+        <label class="toggle-wrap" for="floating-toggle">
+          <div class="toggle-left">
+            <div class="row-label">Floating translate button</div>
+            <div class="row-desc">Show a translate button when text is selected on any page</div>
+          </div>
+          <div class="toggle-track">
+            <input type="checkbox" id="floating-toggle" role="switch" checked>
+            <span class="toggle-thumb"></span>
+          </div>
+        </label>
+        <label class="toggle-wrap" for="context-toggle">
+          <div class="toggle-left">
+            <div class="row-label">Context menu item</div>
+            <div class="row-desc">Add "Translate with Lens" to the right-click menu on selected text</div>
+          </div>
+          <div class="toggle-track">
+            <input type="checkbox" id="context-toggle" role="switch" checked>
+            <span class="toggle-thumb"></span>
+          </div>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="card-title">View Mode</div>
+        <div class="row">
+          <div>
+            <div class="row-label">Open as</div>
+            <div class="row-desc">How the Lens panel appears when you click the toolbar icon</div>
+          </div>
+          <div class="seg-ctrl" id="view-ctrl">
+            <button class="seg" data-value="popup">Popup</button>
+            <button class="seg active" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
+          </div>
+        </div>
+        <div class="row-col" id="sidepanel-note" style="display:none">
+          <div class="info-box">
+            Lens uses an injected in-page sidebar in both Chrome and Firefox — behavior can vary by site layout.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language -->
+    <div class="section" id="section-language">
+      <div class="section-title">Language</div>
+      <div class="section-subtitle">Set your default translation target.</div>
+
+      <div class="card">
+        <div class="card-title">Default Target Language</div>
+        <div class="row">
+          <div>
+            <div class="row-label">Translate into</div>
+            <div class="row-desc">Used when no specific language is selected in the popup</div>
+          </div>
+          <select id="target-lang">
+            <option value="af">Afrikaans</option><option value="sq">Albanian</option>
+            <option value="ar">Arabic</option><option value="hy">Armenian</option>
+            <option value="az">Azerbaijani</option><option value="eu">Basque</option>
+            <option value="be">Belarusian</option><option value="bn">Bengali</option>
+            <option value="bs">Bosnian</option><option value="bg">Bulgarian</option>
+            <option value="ca">Catalan</option><option value="zh">Chinese (Simplified)</option>
+            <option value="zh-TW">Chinese (Traditional)</option><option value="hr">Croatian</option>
+            <option value="cs">Czech</option><option value="da">Danish</option>
+            <option value="nl">Dutch</option><option value="en" selected>English</option>
+            <option value="eo">Esperanto</option><option value="et">Estonian</option>
+            <option value="fi">Finnish</option><option value="fr">French</option>
+            <option value="gl">Galician</option><option value="ka">Georgian</option>
+            <option value="de">German</option><option value="el">Greek</option>
+            <option value="gu">Gujarati</option><option value="ht">Haitian Creole</option>
+            <option value="he">Hebrew</option><option value="hi">Hindi</option>
+            <option value="hu">Hungarian</option><option value="is">Icelandic</option>
+            <option value="id">Indonesian</option><option value="ga">Irish</option>
+            <option value="it">Italian</option><option value="ja">Japanese</option>
+            <option value="kn">Kannada</option><option value="kk">Kazakh</option>
+            <option value="ko">Korean</option><option value="la">Latin</option>
+            <option value="lv">Latvian</option><option value="lt">Lithuanian</option>
+            <option value="mk">Macedonian</option><option value="ms">Malay</option>
+            <option value="ml">Malayalam</option><option value="mt">Maltese</option>
+            <option value="mr">Marathi</option><option value="mn">Mongolian</option>
+            <option value="ne">Nepali</option><option value="no">Norwegian</option>
+            <option value="fa">Persian</option><option value="pl">Polish</option>
+            <option value="pt">Portuguese</option><option value="pa">Punjabi</option>
+            <option value="ro">Romanian</option><option value="ru">Russian</option>
+            <option value="sr">Serbian</option><option value="si">Sinhala</option>
+            <option value="sk">Slovak</option><option value="sl">Slovenian</option>
+            <option value="es">Spanish</option><option value="sw">Swahili</option>
+            <option value="sv">Swedish</option><option value="tl">Tagalog</option>
+            <option value="ta">Tamil</option><option value="te">Telugu</option>
+            <option value="th">Thai</option><option value="tr">Turkish</option>
+            <option value="uk">Ukrainian</option><option value="ur">Urdu</option>
+            <option value="uz">Uzbek</option><option value="vi">Vietnamese</option>
+            <option value="cy">Welsh</option><option value="yi">Yiddish</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="section" id="section-about">
+      <div class="about-version">Lens v1.0.0</div>
+      <div class="about-tagline">A fast, private, zero-signup translator for any page.</div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Default Provider</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">Google Translate</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Optional Upgrade</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">DeepL</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Platform</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">Firefox · Chrome</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">License</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">GPL v3</div>
+        </div>
+      </div>
+
+      <!-- 2-column grid for the four content blocks -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Translation accuracy warning -->
+          <div class="warn-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <strong style="display:block;margin-bottom:4px">Translation accuracy</strong>
+              Machine translation is not always accurate. Meaning, tone, and nuance can be lost or
+              distorted — particularly for idiomatic expressions, specialised terminology (legal,
+              medical, technical), and low-resource languages. Do not rely on automated translations
+              for critical decisions, official documents, or medical/legal advice. When accuracy
+              matters, always verify with a qualified human translator.
+            </div>
+          </div>
+
+          <!-- Privacy -->
+          <div class="card">
+            <div class="card-title">🔒 Privacy policy</div>
+            <div class="row-col">
+              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+                <strong style="color:var(--text);display:block;margin-bottom:6px">Lens collects no personal data.</strong>
+                It does not track your browsing, log translated text, or send information to any
+                external server beyond the translation API itself — which goes directly from your
+                browser to Google or DeepL, not via any Lens-operated server.
+              </p>
+              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+                All preferences are stored locally in your browser and never leave your device.
+                Your DeepL API key is stored only for the current browser session and is only
+                ever transmitted directly to DeepL's API.
+              </p>
+              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+                No analytics. No telemetry. No third-party trackers.
+              </p>
+            </div>
+          </div>
+
+        </div><!-- /LEFT -->
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- How it works -->
+          <div class="card">
+            <div class="card-title">How it works</div>
+            <div class="row-col">
+              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+                Lens offers three ways to translate. Requests go directly from your browser to the
+                API — no intermediate server.
+              </p>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Paste Mode</div>
+                  <div class="hint" style="font-size:12.5px;line-height:1.65">Type or paste text directly into the input box and translate instantly.</div>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Selection Mode</div>
+                  <div class="hint" style="font-size:12.5px;line-height:1.65">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Lens</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Scan Page</div>
+                  <div class="hint" style="font-size:12.5px;line-height:1.65">Extracts all readable content and translates section by section. Click any chunk to jump to its source on the page, and vice versa.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permissions -->
+          <div class="card">
+            <div class="card-title">Permissions explained</div>
+            <div class="row-col">
+              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+                Lens requests <code>&lt;all_urls&gt;</code> access so it can inject the floating
+                translate button and page-scanning into any site you visit. The extension only reads
+                page content when you explicitly trigger a scan or selection — it does not run
+                continuously in the background.
+              </p>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px">
+                <div class="hint" style="font-size:12.5px"><code>activeTab</code> — reads the current tab for page scanning.</div>
+                <div class="hint" style="font-size:12.5px"><code>storage</code> — saves your preferences locally.</div>
+                <div class="hint" style="font-size:12.5px"><code>contextMenus</code> — adds the right-click translate option.</div>
+                <div class="hint" style="font-size:12.5px"><code>scripting</code> — injects the content script for selection mode.</div>
+                <div class="hint" style="font-size:12.5px"><code>tabs</code> — closes open sidebars across all tabs when switching to popup mode.</div>
+                <div class="hint" style="font-size:12.5px"><code>alarms</code> — keeps the background script alive in Firefox to maintain sidebar state.</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /RIGHT -->
+
+      </div><!-- /2-col grid -->
+    </div>
+
+  </main>
+</div>
+<script src="../shared/messages.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>
