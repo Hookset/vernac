@@ -35,13 +35,6 @@ Search for **Lens - Translator** on [addons.mozilla.org](https://addons.mozilla.
 3. Click **This Firefox** -> **Load Temporary Add-on**
 4. Select `manifest.json` from the project folder
 
-### Chrome / Edge / Brave
-
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked**
-4. Select this folder
-
 ---
 
 ## Project structure
