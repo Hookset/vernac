@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://translate.googleapis.com https://api-free.deepl.com https://api.deepl.com">
-  <title>Lens — Settings</title>
+  <title>Vernac — Settings</title>
   <link rel="stylesheet" href="theme-tokens.css">
   <link rel="stylesheet" href="settings.css">
 </head>
@@ -74,7 +74,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
-      Back to Lens
+      Back to Vernac
     </button>
   </aside>
 
@@ -84,7 +84,7 @@
     <!-- Appearance -->
     <div class="section active" id="section-appearance">
       <div class="section-title">Appearance</div>
-      <div class="section-subtitle">Customise how Lens looks.</div>
+      <div class="section-subtitle">Customise how Vernac looks.</div>
 
       <div class="card">
         <div class="card-title">Theme</div>
@@ -140,7 +140,7 @@
         </div>
         <div class="row-col">
           <div class="info-box" id="provider-info">
-            Lens uses Google Translate by default. It is completely free for all users and requires
+            Vernac uses Google Translate by default. It is completely free for all users and requires
             no account or sign-up. Translation requests are sent directly from your browser to Google's API.
           </div>
         </div>
@@ -151,7 +151,7 @@
         <div class="row-col">
           <p class="hint" style="font-size:13px;line-height:1.6;color:var(--text2)">
             For higher-quality translations, you can provide your own DeepL API key. When set,
-            Lens will use DeepL instead of Google Translate. Note that while DeepL generally
+            Vernac will use DeepL instead of Google Translate. Note that while DeepL generally
             produces better results, no machine translation is perfect.
           </p>
           <div class="key-input-row">
@@ -179,7 +179,7 @@
     <!-- Behavior -->
     <div class="section" id="section-behavior">
       <div class="section-title">Behavior</div>
-      <div class="section-subtitle">Control how Lens interacts with pages.</div>
+      <div class="section-subtitle">Control how Vernac interacts with pages.</div>
 
       <div class="card">
         <div class="card-title">Page Integration</div>
@@ -196,7 +196,7 @@
         <label class="toggle-wrap" for="context-toggle">
           <div class="toggle-left">
             <div class="row-label">Context menu item</div>
-            <div class="row-desc">Add "Translate with Lens" to the right-click menu on selected text</div>
+            <div class="row-desc">Add "Translate with Vernac" to the right-click menu on selected text</div>
           </div>
           <div class="toggle-track">
             <input type="checkbox" id="context-toggle" role="switch" checked>
@@ -210,16 +210,16 @@
         <div class="row">
           <div>
             <div class="row-label">Open as</div>
-            <div class="row-desc">How the Lens panel appears when you click the toolbar icon</div>
+            <div class="row-desc">How the Vernac panel appears when you click the toolbar icon</div>
           </div>
           <div class="seg-ctrl" id="view-ctrl">
-            <button class="seg" data-value="popup">Popup</button>
-            <button class="seg active" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
+            <button class="seg active" data-value="popup">Popup</button>
+            <button class="seg" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
           </div>
         </div>
         <div class="row-col" id="sidepanel-note" style="display:none">
           <div class="info-box">
-            Lens uses an injected in-page sidebar in Firefox — behavior can vary by site layout.
+            Vernac uses an injected in-page sidebar in Firefox — behavior can vary by site layout.
           </div>
         </div>
       </div>
@@ -282,7 +282,7 @@
 
     <!-- About -->
     <div class="section" id="section-about">
-      <div class="about-version" id="about-version">Lens</div>
+      <div class="about-version" id="about-version">Vernac</div>
       <div class="about-tagline">A fast, private, zero-signup translator for any page.</div>
 
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
@@ -331,10 +331,10 @@
             <div class="card-title">🔒 Privacy policy</div>
             <div class="row-col">
               <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
-                <strong style="color:var(--text);display:block;margin-bottom:6px">Lens collects no personal data.</strong>
+                <strong style="color:var(--text);display:block;margin-bottom:6px">Vernac collects no personal data.</strong>
                 It does not track your browsing, log translated text, or send information to any
                 external server beyond the translation API itself — which goes directly from your
-                browser to Google or DeepL, not via any Lens-operated server.
+                browser to Google or DeepL, not via any Vernac-operated server.
               </p>
               <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
                 All preferences are stored locally in your browser and never leave your device.
@@ -357,7 +357,7 @@
             <div class="card-title">How it works</div>
             <div class="row-col">
               <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
-                Lens offers three ways to translate. Requests go directly from your browser to the
+                Vernac offers three ways to translate. Requests go directly from your browser to the
                 API — no intermediate server.
               </p>
               <div style="display:flex;flex-direction:column;gap:12px">
@@ -367,7 +367,7 @@
                 </div>
                 <div>
                   <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Selection Mode</div>
-                  <div class="hint" style="font-size:12.5px;line-height:1.65">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Lens</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
+                  <div class="hint" style="font-size:12.5px;line-height:1.65">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Vernac</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
                 </div>
                 <div>
                   <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Scan Page</div>
@@ -382,7 +382,7 @@
             <div class="card-title">Permissions explained</div>
             <div class="row-col">
               <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
-                Lens requests <code>&lt;all_urls&gt;</code> access so it can inject the floating
+                Vernac requests <code>&lt;all_urls&gt;</code> access so it can inject the floating
                 translate button and page-scanning into any site you visit. The extension only reads
                 page content when you explicitly trigger a scan or selection — it does not run
                 continuously in the background.

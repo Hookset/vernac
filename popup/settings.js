@@ -1,11 +1,11 @@
-// settings.js - Lens Translator Settings Page
+// settings.js - Vernac Settings Page
 'use strict';
 
 const $ = id => document.getElementById(id);
 
 const S = {
   theme: 'dark', fontSize: 14, targetLang: 'en',
-  viewMode: 'sidepanel', deeplKey: '',
+  viewMode: 'popup', deeplKey: '',
   floatingBtn: true, contextMenu: true,
 };
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   syncUI();
   attachListeners();
   const v = $('about-version');
-  if (v) v.textContent = `Lens v${chrome.runtime.getManifest().version}`;
+  if (v) v.textContent = `Vernac v${chrome.runtime.getManifest().version}`;
 });
 
 async function load() {
@@ -37,7 +37,7 @@ async function load() {
     if (typeof localPrefs.floatingBtn !== 'undefined') S.floatingBtn = !!localPrefs.floatingBtn;
     if (typeof localPrefs.contextMenu !== 'undefined') S.contextMenu = !!localPrefs.contextMenu;
   } catch (e) {
-    console.warn('Lens: settings prefs load error', e);
+    console.warn('Vernac: settings prefs load error', e);
   }
 
   try {
@@ -50,7 +50,7 @@ async function load() {
       await chrome.storage.local.remove('deeplKey');
     }
   } catch (e) {
-    console.warn('Lens: session storage error', e);
+    console.warn('Vernac: session storage error', e);
   }
 }
 
@@ -111,7 +111,7 @@ function updateProviderUI() {
     if (name) name.textContent = 'Google Translate';
     if (sub) sub.textContent = 'Free for all users · No account required';
     if (pill) { pill.textContent = 'Active'; pill.className = 'provider-pill google'; }
-    if (info) info.textContent = 'Lens uses Google Translate by default. It is completely free for all users and requires no account or sign-up. Translation requests are sent directly from your browser to Google\'s API.';
+    if (info) info.textContent = 'Vernac uses Google Translate by default. It is completely free for all users and requires no account or sign-up. Translation requests are sent directly from your browser to Google\'s API.';
   }
 }
 

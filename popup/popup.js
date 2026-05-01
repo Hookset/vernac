@@ -1,4 +1,4 @@
-// popup.js - Lens Translator (Firefox-first)
+// popup.js - Vernac (Firefox-first)
 'use strict';
 
 const CHUNK_SIZE = 4000;
@@ -12,7 +12,7 @@ const SCAN_CHUNK_CAP = 200;
 
 const S = {
   theme: 'dark', fontSize: 14, targetLang: 'en',
-  viewMode: 'sidepanel', deeplKey: '',
+  viewMode: 'popup', deeplKey: '',
   provider: 'google',
   activeTab: 'paste', isTranslating: false, outputMode: null,
   scanChunks: [], selectionText: '', inPlaceOn: false, scanTabId: null,
@@ -80,7 +80,7 @@ async function loadPrefs() {
       if (sel && Array.from(sel.options).some(o => o.value === bl)) S.targetLang = bl;
     }
   } catch (e) {
-    console.warn('Lens: prefs load error', e);
+    console.warn('Vernac: prefs load error', e);
   }
 
   // DeepL key — session storage handled separately so a failure there
@@ -97,7 +97,7 @@ async function loadPrefs() {
       await chrome.storage.local.remove('deeplKey');
     }
   } catch (e) {
-    console.warn('Lens: session storage error', e);
+    console.warn('Vernac: session storage error', e);
   }
 }
 

@@ -1,4 +1,4 @@
-// content.js — Lens Translator (Firefox-first)
+// content.js — Vernac (Firefox-first)
 (function () {
   'use strict';
 
@@ -38,7 +38,7 @@
   let sidebarChannel = null;
   let sidebarToggleTab = null;
   let previousBodyMarginRight = null;
-  let viewMode = 'sidepanel';
+  let viewMode = 'popup';
   let floatingBtnEnabled = true;
   const EXTENSION_ORIGIN = chrome.runtime.getURL('').slice(0, -1);
 
@@ -69,7 +69,7 @@
     // Close strip on the left edge
     const closeStrip = document.createElement('button');
     closeStrip.id = '__lens-sidebar-close__';
-    closeStrip.title = 'Close Lens';
+    closeStrip.title = 'Close Vernac';
     closeStrip.appendChild(createSvgIcon('14', '14', [
       ['path', { d: 'M15 18l-6-6 6-6' }],
     ]));
@@ -139,8 +139,8 @@
     sidebarToggleTab = document.createElement('button');
     sidebarToggleTab.id = '__lens-sidebar-toggle__';
     sidebarToggleTab.type = 'button';
-    sidebarToggleTab.title = 'Open Lens sidebar';
-    sidebarToggleTab.setAttribute('aria-label', 'Open Lens sidebar');
+    sidebarToggleTab.title = 'Open Vernac sidebar';
+    sidebarToggleTab.setAttribute('aria-label', 'Open Vernac sidebar');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '13');
     svg.setAttribute('height', '13');
@@ -187,13 +187,13 @@
     try {
       const d = await chrome.storage.local.get('viewMode');
       if (d.viewMode) viewMode = d.viewMode;
-    } catch (e) { console.warn('[Lens] Failed to load viewMode pref', e); }
+    } catch (e) { console.warn('[Vernac] Failed to load viewMode pref', e); }
 
     updateSidebarToggleTab();
 
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== 'local' || !changes.viewMode) return;
-      viewMode = changes.viewMode.newValue || 'sidepanel';
+      viewMode = changes.viewMode.newValue || 'popup';
       updateSidebarToggleTab();
     });
   }
@@ -202,7 +202,7 @@
     try {
       const d = await chrome.storage.local.get('floatingBtn');
       floatingBtnEnabled = d.floatingBtn !== false;
-    } catch (e) { console.warn('[Lens] Failed to load floatingBtn pref', e); }
+    } catch (e) { console.warn('[Vernac] Failed to load floatingBtn pref', e); }
 
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === 'local' && changes.floatingBtn) {

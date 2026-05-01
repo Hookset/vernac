@@ -1,4 +1,4 @@
-// background.js — Lens Translator (Firefox-first)
+// background.js — Vernac (Firefox-first)
 'use strict';
 
 // MSG is defined inline here because importScripts is unreliable in MV3
@@ -52,7 +52,7 @@ const SIDEBAR_CHANNEL_KEY_PREFIX = 'sidebarChannel:';
 
 function debugWarn(...args) {
   if (DEBUG) {
-    console.warn('[Lens]', ...args);
+    console.warn('[Vernac]', ...args);
   }
 }
 
@@ -221,7 +221,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(async () => {
     chrome.contextMenus.create({
       id: 'lens-translate-selection',
-      title: 'Translate with Lens',
+      title: 'Translate with Vernac',
       contexts: ['selection'],
     });
     try {
@@ -250,12 +250,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 async function applyViewMode() {
   try {
     const d = await chrome.storage.local.get('viewMode');
-    // In sidebar mode the toolbar click fires onClicked instead of opening popup
-    // Default is sidepanel; only restore popup if explicitly set to popup
-    if (d.viewMode === 'popup') {
-      await chrome.action.setPopup({ popup: 'popup/popup.html' });
-    } else {
+    // Default is popup; only clear popup (enable sidebar mode) if explicitly set to sidepanel
+    if (d.viewMode === 'sidepanel') {
       await chrome.action.setPopup({ popup: '' });
+    } else {
+      await chrome.action.setPopup({ popup: 'popup/popup.html' });
     }
   } catch (e) {
     debugWarn('applyViewMode failed', e);
@@ -299,6 +298,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== 'lens-translate-selection') return;
   const rawText = info.selectionText?.trim();
   if (!tab?.id || !rawText) return;
+  if (isSettingsPageUrl(tab.url)) return;
   // Cap to avoid sending enormous payloads to the translation API
   const text = rawText.slice(0, 4000);
 
@@ -346,8 +346,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             debugWarn('Failed to read viewMode on SIDEBAR_CLOSED', e);
             return {};
           });
-        // Only restore popup if explicitly set to 'popup' — default (undefined) stays sidebar
-        if (d.viewMode === 'popup') {
+        // Restore popup unless explicitly set to 'sidepanel' — default (undefined) is popup
+        if (d.viewMode !== 'sidepanel') {
           await chrome.action.setPopup({ popup: 'popup/popup.html' })
             .catch(e => debugWarn('Failed to restore popup on SIDEBAR_CLOSED', e));
         }
