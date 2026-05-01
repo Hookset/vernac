@@ -1,5 +1,5 @@
 {
-  "name": "lens-translator",
+  "name": "vernac",
   "version": "1.0.0",
   "description": "A clean, fast browser extension for translating text on any page.   **Firefox-first. Chrome supported. No account required.**",
   "main": "background.js",
