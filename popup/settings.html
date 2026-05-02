@@ -59,7 +59,7 @@
         Language
       </button>
 
-      <div class="nav-section-title" style="margin-top:8px">Info</div>
+      <div class="nav-section-title nav-gap">Info</div>
 
       <button class="nav-item" data-section="about">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,9 +115,9 @@
           </div>
         </div>
       </div>
-      <div class="row-col" style="background:var(--bg3);border-top:1px solid var(--border)">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3)">Preview</div>
-        <p id="font-preview" style="font-size:14px;line-height:1.7;color:var(--text2)">
+      <div class="row-col row-col-preview">
+        <div class="preview-label">Preview</div>
+        <p id="font-preview">
           The quick brown fox jumps over the lazy dog. 狐が怠け者の犬を飛び越えた。
         </p>
       </div>
@@ -147,9 +147,9 @@
       </div>
 
       <div class="card">
-        <div class="card-title">DeepL API Key <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0"> — optional upgrade</span></div>
+        <div class="card-title">DeepL API Key <span class="card-title-note"> — optional upgrade</span></div>
         <div class="row-col">
-          <p class="hint" style="font-size:13px;line-height:1.6;color:var(--text2)">
+          <p class="hint-body">
             For higher-quality translations, you can provide your own DeepL API key. When set,
             Vernac will use DeepL instead of Google Translate. Note that while DeepL generally
             produces better results, no machine translation is perfect.
@@ -217,7 +217,7 @@
             <button class="seg" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
           </div>
         </div>
-        <div class="row-col" id="sidepanel-note" style="display:none">
+        <div class="row-col" id="sidepanel-note">
           <div class="info-box">
             Vernac uses an injected in-page sidebar in Firefox — behavior can vary by site layout.
           </div>
@@ -285,39 +285,39 @@
       <div class="about-version" id="about-version">Vernac</div>
       <div class="about-tagline">A fast, private, zero-signup translator for any page.</div>
 
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Default Provider</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)">Google Translate</div>
+      <div class="about-grid">
+        <div class="about-tile">
+          <div class="about-tile-label">Default Provider</div>
+          <div class="about-tile-value">Google Translate</div>
         </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Optional Upgrade</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)">DeepL</div>
+        <div class="about-tile">
+          <div class="about-tile-label">Optional Upgrade</div>
+          <div class="about-tile-value">DeepL</div>
         </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">Platform</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)">Firefox</div>
+        <div class="about-tile">
+          <div class="about-tile-label">Platform</div>
+          <div class="about-tile-value">Firefox</div>
         </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:14px 16px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:5px">License</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)">GPL v3</div>
+        <div class="about-tile">
+          <div class="about-tile-label">License</div>
+          <div class="about-tile-value">GPL v3</div>
         </div>
       </div>
 
       <!-- 2-column grid for the four content blocks -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div class="about-body-grid">
 
         <!-- LEFT COLUMN -->
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="about-col">
 
           <!-- Translation accuracy warning -->
           <div class="warn-box">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             <div>
-              <strong style="display:block;margin-bottom:4px">Translation accuracy</strong>
+              <strong class="about-warn-heading">Translation accuracy</strong>
               Machine translation is not always accurate. Meaning, tone, and nuance can be lost or
               distorted — particularly for idiomatic expressions, specialised terminology (legal,
               medical, technical), and low-resource languages. Do not rely on automated translations
@@ -330,18 +330,18 @@
           <div class="card">
             <div class="card-title">🔒 Privacy policy</div>
             <div class="row-col">
-              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
-                <strong style="color:var(--text);display:block;margin-bottom:6px">Vernac collects no personal data.</strong>
+              <p class="about-body-text">
+                <strong class="about-strong-heading">Vernac collects no personal data.</strong>
                 It does not track your browsing, log translated text, or send information to any
                 external server beyond the translation API itself — which goes directly from your
                 browser to Google or DeepL, not via any Vernac-operated server.
               </p>
-              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+              <p class="about-body-text">
                 All preferences are stored locally in your browser and never leave your device.
                 Your DeepL API key is stored only for the current browser session and is only
                 ever transmitted directly to DeepL's API.
               </p>
-              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+              <p class="about-body-text">
                 No analytics. No telemetry. No third-party trackers.
               </p>
             </div>
@@ -350,28 +350,28 @@
         </div><!-- /LEFT -->
 
         <!-- RIGHT COLUMN -->
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="about-col">
 
           <!-- How it works -->
           <div class="card">
             <div class="card-title">How it works</div>
             <div class="row-col">
-              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+              <p class="about-body-text">
                 Vernac offers three ways to translate. Requests go directly from your browser to the
                 API — no intermediate server.
               </p>
-              <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="about-mode-list">
                 <div>
-                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Paste Mode</div>
-                  <div class="hint" style="font-size:12.5px;line-height:1.65">Type or paste text directly into the input box and translate instantly.</div>
+                  <div class="about-mode-name">Paste Mode</div>
+                  <div class="hint about-mode-desc">Type or paste text directly into the input box and translate instantly.</div>
                 </div>
                 <div>
-                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Selection Mode</div>
-                  <div class="hint" style="font-size:12.5px;line-height:1.65">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Vernac</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
+                  <div class="about-mode-name">Selection Mode</div>
+                  <div class="hint about-mode-desc">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Vernac</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
                 </div>
                 <div>
-                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Scan Page</div>
-                  <div class="hint" style="font-size:12.5px;line-height:1.65">Extracts all readable content and translates section by section. Click any chunk to jump to its source on the page, and vice versa.</div>
+                  <div class="about-mode-name">Scan Page</div>
+                  <div class="hint about-mode-desc">Extracts all readable content and translates section by section. Click any chunk to jump to its source on the page, and vice versa.</div>
                 </div>
               </div>
             </div>
@@ -381,19 +381,19 @@
           <div class="card">
             <div class="card-title">Permissions explained</div>
             <div class="row-col">
-              <p class="hint" style="font-size:13px;line-height:1.7;color:var(--text2)">
+              <p class="about-body-text">
                 Vernac requests <code>&lt;all_urls&gt;</code> access so it can inject the floating
                 translate button and page-scanning into any site you visit. The extension only reads
                 page content when you explicitly trigger a scan or selection — it does not run
                 continuously in the background.
               </p>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px">
-                <div class="hint" style="font-size:12.5px"><code>activeTab</code> — reads the current tab for page scanning.</div>
-                <div class="hint" style="font-size:12.5px"><code>storage</code> — saves your preferences locally.</div>
-                <div class="hint" style="font-size:12.5px"><code>contextMenus</code> — adds the right-click translate option.</div>
-                <div class="hint" style="font-size:12.5px"><code>scripting</code> — injects the content script for selection mode.</div>
-                <div class="hint" style="font-size:12.5px"><code>tabs</code> — closes open sidebars across all tabs when switching to popup mode.</div>
-                <div class="hint" style="font-size:12.5px"><code>alarms</code> — keeps the background script alive in Firefox to maintain sidebar state.</div>
+              <div class="about-perm-list">
+                <div class="hint about-perm-hint"><code>activeTab</code> — reads the current tab for page scanning.</div>
+                <div class="hint about-perm-hint"><code>storage</code> — saves your preferences locally.</div>
+                <div class="hint about-perm-hint"><code>contextMenus</code> — adds the right-click translate option.</div>
+                <div class="hint about-perm-hint"><code>scripting</code> — injects the content script for selection mode.</div>
+                <div class="hint about-perm-hint"><code>tabs</code> — closes open sidebars across all tabs when switching to popup mode.</div>
+                <div class="hint about-perm-hint"><code>alarms</code> — keeps the background script alive in Firefox to maintain sidebar state.</div>
               </div>
             </div>
           </div>
