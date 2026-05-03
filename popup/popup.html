@@ -212,7 +212,7 @@
                      M21 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <p>Scan the full page. Translated chunks are linked — click any to jump to its source.</p>
+          <p>Scan the full page. Translated chunks are linked — click any to jump to its source. May not work correctly on all sites.</p>
         </div>
 
         <div class="option-card">
@@ -248,6 +248,13 @@
         </button>
         <button id="scan-stop-btn" class="ghost-btn" type="button" disabled>
           Stop Translation
+        </button>
+        <button id="scan-revert-btn" class="ghost-btn hidden" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7v6h6"/><path d="M3 13A9 9 0 1 0 5.7 5.7L3 8"/>
+          </svg>
+          Revert page translation
         </button>
       </div>
     </section>
@@ -315,6 +322,7 @@
 
 </div><!-- #app -->
 <script src="../shared/messages.js"></script>
+<script src="../shared/storage.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

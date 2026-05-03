@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vernac",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Translate any text or page. Paste, select, or scan \u2014 Google Translate by default, DeepL with your own key.",
   "permissions": [
     "activeTab",

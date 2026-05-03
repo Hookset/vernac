@@ -9,6 +9,8 @@ const RATE_LIMIT_MAX_REQUESTS = 12;
 const SCAN_CONCURRENCY = 3;
 const SCAN_BATCH_DELAY_MS = 300;
 const SCAN_CHUNK_CAP = 200;
+const PENDING_SELECTION_KEY = 'pendingSelectionTranslation';
+const PENDING_SELECTION_TTL_MS = 60_000;
 
 const S = {
   theme: 'dark', fontSize: 14, targetLang: 'en',
@@ -47,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.documentElement.style.height = '100vh';
     document.documentElement.style.maxHeight = '100vh';
     document.documentElement.style.minHeight = '100vh';
-    await initSidebarBridge();
+    initSidebarBridge();
   }
   await loadPrefs();
   applyTheme();
@@ -56,6 +58,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateProviderBadge();
   attachListeners();
   updateScanStopButton();
+  if (!inSidebar) {
+    await checkAndRestoreInPlace();
+    await consumePendingSelectionTranslation();
+  }
+});
+
+// On popup window close: strip scan highlights from the page but leave any
+// in-place translations intact so the user can revert on next open.
+window.addEventListener('unload', () => {
+  if (inSidebar) return;
+  if (!S.scanTabId) return;
+  chrome.tabs.sendMessage(S.scanTabId, { type: MSG.CLEAR_SCAN_KEEP_IN_PLACE }).catch(() => {});
 });
 
 async function loadPrefs() {
@@ -85,19 +99,10 @@ async function loadPrefs() {
 
   // DeepL key — session storage handled separately so a failure there
   // does not affect theme or other preferences loaded above.
-  try {
-    const session = await chrome.storage.session.get(['deeplKey']);
-    if (session.deeplKey) {
-      S.deeplKey = session.deeplKey;
-      S.provider = 'deepl';
-    } else if (localPrefs.deeplKey) {
-      S.deeplKey = localPrefs.deeplKey;
-      S.provider = 'deepl';
-      await chrome.storage.session.set({ deeplKey: localPrefs.deeplKey });
-      await chrome.storage.local.remove('deeplKey');
-    }
-  } catch (e) {
-    console.warn('Vernac: session storage error', e);
+  const key = await loadDeeplKey(localPrefs);
+  if (key) {
+    S.deeplKey = key;
+    S.provider = 'deepl';
   }
 }
 
@@ -239,6 +244,7 @@ function attachListeners() {
 
   $('scan-btn').addEventListener('click', doScan);
   $('scan-stop-btn').addEventListener('click', stopScanTranslation);
+  $('scan-revert-btn').addEventListener('click', doRevert);
   $('in-place-toggle').addEventListener('change', onInPlaceToggle);
   $('revert-btn').addEventListener('click', doRevert);
   $('rescan-btn').addEventListener('click', doScan);
@@ -321,7 +327,7 @@ async function pollSelection() {
     if (!tab?.id) return;
     const r = await chrome.tabs.sendMessage(tab.id, { type: MSG.GET_SELECTION });
     if (r?.text?.length > 3) { S.selectionText = r.text; showSelectionLoaded(r.text); }
-  } catch {}
+  } catch { /* content script not yet injected — expected */ }
 }
 
 function showSelectionLoaded(text) {
@@ -372,12 +378,13 @@ async function doScanMore() {
         S.scanTabId = tab.id;
         await runScanTranslation(newChunks, tab.id);
       }
-    } catch {}
+    } catch (e) { console.warn('[Vernac] doScanMore failed', e); }
   }
 }
 
 async function doScan() {
   if (S.isTranslating) return;
+  $('scan-revert-btn').classList.add('hidden');
 
   if (inSidebar) {
     S.scanTabId = await getActiveTabId();
@@ -499,16 +506,31 @@ function markScanChunkFailed(chunk, error) {
   }
 }
 
+function markScanChunkSameLang(chunk) {
+  chunk.sameLang = true;   // flag used to send DEREGISTER_CHUNKS after the batch
+  // chunk.translated stays null — excluded from in-place application
+  const el = getOutputChunkEl(chunk);
+  if (!el) return;
+  el.classList.remove('skeleton');
+  el.textContent = '[same language]';
+  el.style.opacity = '0.45';
+  el.style.pointerEvents = 'none';
+  el.style.cursor = 'default';
+}
+
 async function translateScanChunk(chunk) {
   if (S.scanAbortRequested) return { processed: false, sameLanguage: false };
 
   try {
     const r = await doTranslate(chunk.text, { trackScan: true });
-    markScanChunkResult(chunk, r.translated);
-    return {
-      processed: true,
-      sameLanguage: setDetectedLanguage(r.detectedLang),
-    };
+    const chunkSameLang = !!(r.detectedLang && r.detectedLang === S.targetLang);
+    setDetectedLanguage(r.detectedLang); // update UI label (first call wins)
+    if (chunkSameLang) {
+      markScanChunkSameLang(chunk);
+    } else {
+      markScanChunkResult(chunk, r.translated);
+    }
+    return { processed: true, sameLanguage: chunkSameLang };
   } catch (e) {
     markScanChunkFailed(chunk, e);
     return { processed: true, sameLanguage: false };
@@ -518,9 +540,9 @@ async function translateScanChunk(chunk) {
 async function translateScanBatch(batch, progress) {
   await Promise.all(batch.map(async chunk => {
     const { processed, sameLanguage } = await translateScanChunk(chunk);
-    if (sameLanguage) progress.sameLanguage = true;
     if (processed) {
       progress.done++;
+      if (sameLanguage) progress.sameLangCount++;
       updateScanProgress(progress.done, progress.total, progress.hasCap);
     }
   }));
@@ -548,6 +570,17 @@ async function applyBatchInPlace(batch, tabId) {
   }
 }
 
+function deregisterSameLangBatch(batch, tabId) {
+  const ids = batch.filter(c => c.sameLang).map(c => c.id);
+  if (!ids.length) return;
+  const targetTabId = tabId || S.scanTabId;
+  if (targetTabId) {
+    chrome.tabs.sendMessage(targetTabId, { type: MSG.DEREGISTER_CHUNKS, ids }).catch(() => {});
+  } else if (inSidebar) {
+    postToSidebarHost({ type: MSG.LENS_DEREGISTER_CHUNKS, ids });
+  }
+}
+
 async function delayBetweenScanBatches(index, total) {
   if (index + SCAN_CONCURRENCY < total && !S.scanAbortRequested) {
     await new Promise(res => {
@@ -568,6 +601,7 @@ function markPendingScanChunksStopped(chunks) {
   });
 }
 
+
 async function runScanTranslation(chunks, tabId) {
   S.isTranslating = true;
   S.scanAbortRequested = false;
@@ -579,7 +613,7 @@ async function runScanTranslation(chunks, tabId) {
       done: 0,
       total: capped.length,
       hasCap,
-      sameLanguage: false,
+      sameLangCount: 0,
     };
 
     for (let i = 0; i < capped.length; i += SCAN_CONCURRENCY) {
@@ -591,7 +625,8 @@ async function runScanTranslation(chunks, tabId) {
 
       if (S.scanAbortRequested) break;
 
-      if (!progress.sameLanguage) await applyBatchInPlace(batch, tabId);
+      await applyBatchInPlace(batch, tabId);
+      deregisterSameLangBatch(batch, tabId);
 
       await delayBetweenScanBatches(i, capped.length);
     }
@@ -599,6 +634,16 @@ async function runScanTranslation(chunks, tabId) {
     if (S.scanAbortRequested) {
       markPendingScanChunksStopped(capped);
       $('out-progress').textContent = `Stopped at ${formatScanProgress(progress.done, capped.length, hasCap)}`;
+    } else if (progress.sameLangCount > 0 && progress.sameLangCount === progress.done) {
+      // Every completed chunk was already in the target language — clean up the page
+      $('out-progress').textContent = `Page already in ${S.detectedLang}`;
+      $('scan-footer').classList.add('hidden');
+      const clearTabId = tabId || S.scanTabId;
+      if (clearTabId) {
+        chrome.tabs.sendMessage(clearTabId, { type: MSG.CLEAR_SCAN }).catch(() => {});
+      } else if (inSidebar) {
+        postToSidebarHost({ type: MSG.LENS_CLEAR_SCAN });
+      }
     } else {
       $('out-progress').textContent = `${progress.done} chunks`;
     }
@@ -634,7 +679,7 @@ async function onOutChunkClick(id) {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id) await chrome.tabs.sendMessage(tab.id, { type: MSG.HIGHLIGHT_CHUNK, chunkId: id });
     }
-  } catch {}
+  } catch (e) { console.warn('[Vernac] chunk highlight failed', e); }
 }
 
 function highlightOutChunk(id) {
@@ -663,7 +708,7 @@ async function applyInPlace(chunks, tabId) {
       postToSidebarHost({ type: MSG.LENS_APPLY_IN_PLACE, translations });
     }
     $('revert-btn').classList.remove('hidden');
-  } catch {}
+  } catch (e) { console.warn('[Vernac] applyInPlace failed', e); }
 }
 
 async function doRevert() {
@@ -679,8 +724,9 @@ async function doRevert() {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id) await chrome.tabs.sendMessage(tab.id, { type: MSG.REVERT_IN_PLACE });
     }
-  } catch {}
+  } catch (e) { console.warn('[Vernac] doRevert failed', e); }
   $('revert-btn').classList.add('hidden');
+  $('scan-revert-btn').classList.add('hidden');
 }
 
 async function runTranslation(chunks, mode) {
@@ -751,6 +797,49 @@ function openOutput() {
   applyFontSize();
 }
 
+// Shows the inline revert button on the scan tab. Called when the popup opens
+// and detects that a previous in-place translation is still active on the page.
+function restoreInPlaceUI(tabId) {
+  S.inPlaceOn = true;
+  S.scanTabId = tabId;
+  const toggle = $('in-place-toggle');
+  if (toggle) toggle.checked = true;
+  $('in-place-warning').classList.remove('hidden');
+  $('scan-revert-btn').classList.remove('hidden');
+}
+
+async function checkAndRestoreInPlace() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    const r = await chrome.tabs.sendMessage(tab.id, { type: MSG.GET_IN_PLACE_STATE });
+    if (r?.active) restoreInPlaceUI(tab.id);
+  } catch { /* content script not yet injected — expected */ }
+}
+
+async function consumePendingSelectionTranslation() {
+  let pending;
+  try {
+    const stored = await chrome.storage.session.get(PENDING_SELECTION_KEY);
+    pending = stored[PENDING_SELECTION_KEY];
+    await chrome.storage.session.remove(PENDING_SELECTION_KEY);
+  } catch (e) {
+    console.warn('[Vernac] pending selection load error', e);
+    return;
+  }
+
+  if (!pending || typeof pending.text !== 'string') return;
+  if (Date.now() - Number(pending.createdAt || 0) > PENDING_SELECTION_TTL_MS) return;
+
+  const text = pending.text.trim();
+  if (!text) return;
+
+  S.selectionText = text;
+  switchTab('selection');
+  showSelectionLoaded(text);
+  setTimeout(() => doSelectionTranslate(), 80);
+}
+
 async function closeOutput() {
   if (S.isTranslating && S.outputMode === 'scan') {
     stopScanTranslation();
@@ -797,10 +886,10 @@ async function copyOutput() {
     btn.classList.add('ok');
     btn.title = 'Copied!';
     setTimeout(() => { btn.classList.remove('ok'); btn.title = 'Copy all'; }, 1600);
-  } catch {}
+  } catch { /* clipboard write blocked — expected without focus/permission */ }
 }
 
-async function initSidebarBridge() {
+function initSidebarBridge() {
   if (!sidebarChannelId) return;
   window.addEventListener('message', onSidebarInitMessage);
 }
@@ -832,6 +921,7 @@ async function onSidebarInitMessage(e) {
   sidebarPort.start?.();
   window.removeEventListener('message', onSidebarInitMessage);
   postToSidebarHost({ type: MSG.LENS_READY });
+  postToSidebarHost({ type: MSG.LENS_GET_IN_PLACE_STATE });
 }
 
 function onSidebarHostMessage(e) {
@@ -864,6 +954,10 @@ function onSidebarHostMessage(e) {
 
     case MSG.LENS_CHUNK_CLICKED:
       highlightOutChunk(e.data.chunkId);
+      break;
+
+    case MSG.LENS_IN_PLACE_STATE:
+      if (e.data.active) restoreInPlaceUI(null);
       break;
 
     case MSG.LENS_NEW_CONTENT_AVAILABLE: {

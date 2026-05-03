@@ -69,6 +69,7 @@ module.exports = [
         ...browserGlobals,
         ...extensionGlobals,
         MSG: 'readonly',
+        loadDeeplKey: 'readonly',
       },
     },
     rules: {

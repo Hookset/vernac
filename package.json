@@ -1,11 +1,11 @@
 {
   "name": "vernac",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A clean, fast browser extension for translating text on any page.   **Firefox-first. Chrome supported. No account required.**",
   "main": "background.js",
   "scripts": {
     "lint": "eslint background.js content.js popup/*.js shared/*.js",
-    "check:messages": "powershell -ExecutionPolicy Bypass -File scripts/check-message-constants.ps1",
+    "check:messages": "node scripts/check-message-constants.js",
     "check": "npm run lint && npm run check:messages",
     "test": "npm run check"
   },

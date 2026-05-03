@@ -300,6 +300,18 @@ textarea:focus { border-color: var(--accent); }
   color: var(--err);
 }
 
+#scan-revert-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 6px;
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--warn);
+}
+#scan-revert-btn:hover {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
 #scan-stop-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;

@@ -40,18 +40,7 @@ async function load() {
     console.warn('Vernac: settings prefs load error', e);
   }
 
-  try {
-    const session = await chrome.storage.session.get(['deeplKey']);
-    if (session.deeplKey) {
-      S.deeplKey = session.deeplKey;
-    } else if (localPrefs.deeplKey) {
-      S.deeplKey = localPrefs.deeplKey;
-      await chrome.storage.session.set({ deeplKey: localPrefs.deeplKey });
-      await chrome.storage.local.remove('deeplKey');
-    }
-  } catch (e) {
-    console.warn('Vernac: session storage error', e);
-  }
+  S.deeplKey = await loadDeeplKey(localPrefs);
 }
 
 async function save() {

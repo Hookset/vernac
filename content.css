@@ -131,12 +131,10 @@
   to   { transform: translateX(0); }
 }
 
-/* Keep this width in sync with SIDEBAR_TOTAL_WIDTH_PX in content.js. */
 #__lens-sidebar-wrapper__ {
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
-  width: 496px !important;
   height: 100vh !important;
   z-index: 2147483640 !important;
   display: flex !important;

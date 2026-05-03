@@ -1,27 +1,29 @@
 // background.js — Vernac (Firefox-first)
 'use strict';
 
-// MSG is defined inline here because importScripts is unreliable in MV3
-// service workers. All other contexts load shared/messages.js instead.
-// Keep these values in sync with shared/messages.js.
+// MSG is defined inline here because background.js runs as a Firefox event
+// page (background.scripts), which does not support importScripts or ES module
+// imports. All other contexts load shared/messages.js instead.
+// Keep both copies in sync — run `npm run check:messages` to verify.
 const MSG = {
   TOGGLE_SIDEBAR:            'TOGGLE_SIDEBAR',
   CLOSE_SIDEBAR:             'CLOSE_SIDEBAR',
   OPEN_SIDEBAR_WITH_PENDING: 'OPEN_SIDEBAR_WITH_PENDING',
+  OPEN_POPUP_WITH_PENDING:   'OPEN_POPUP_WITH_PENDING',
   SIDEBAR_OPENED:            'SIDEBAR_OPENED',
   SIDEBAR_CLOSED:            'SIDEBAR_CLOSED',
   SCAN_PAGE:                 'SCAN_PAGE',
   SCAN_MORE_PAGE:            'SCAN_MORE_PAGE',
-  HIGHLIGHT_CHUNK:           'HIGHLIGHT_CHUNK',
-  CLEAR_SCAN:                'CLEAR_SCAN',
-  APPLY_IN_PLACE:            'APPLY_IN_PLACE',
-  REVERT_IN_PLACE:           'REVERT_IN_PLACE',
-  GET_SELECTION:             'GET_SELECTION',
-  CHUNK_CLICKED:             'CHUNK_CLICKED',
+  HIGHLIGHT_CHUNK:               'HIGHLIGHT_CHUNK',
+  CLEAR_SCAN:                    'CLEAR_SCAN',
+  CLEAR_SCAN_KEEP_IN_PLACE:      'CLEAR_SCAN_KEEP_IN_PLACE',
+  DEREGISTER_CHUNKS:             'DEREGISTER_CHUNKS',
+  APPLY_IN_PLACE:                'APPLY_IN_PLACE',
+  REVERT_IN_PLACE:               'REVERT_IN_PLACE',
+  GET_SELECTION:                 'GET_SELECTION',
+  GET_IN_PLACE_STATE:            'GET_IN_PLACE_STATE',
   OPEN_SETTINGS_TAB:         'OPEN_SETTINGS_TAB',
   SET_VIEW_MODE:             'SET_VIEW_MODE',
-  SET_BADGE:                 'SET_BADGE',
-  CLEAR_BADGE:               'CLEAR_BADGE',
   SET_CONTEXT_MENU:          'SET_CONTEXT_MENU',
   CREATE_SIDEBAR_CHANNEL:    'CREATE_SIDEBAR_CHANNEL',
   GET_SIDEBAR_CHANNEL_SECRET:'GET_SIDEBAR_CHANNEL_SECRET',
@@ -36,10 +38,13 @@ const MSG = {
   LENS_HIGHLIGHT_CHUNK:      'LENS_HIGHLIGHT_CHUNK',
   LENS_CHUNK_CLICKED:        'LENS_CHUNK_CLICKED',
   LENS_NEW_CONTENT_AVAILABLE:'LENS_NEW_CONTENT_AVAILABLE',
-  LENS_APPLY_IN_PLACE:       'LENS_APPLY_IN_PLACE',
-  LENS_REVERT_IN_PLACE:      'LENS_REVERT_IN_PLACE',
-  LENS_CLEAR_SCAN:           'LENS_CLEAR_SCAN',
-  LENS_TRANSLATE_SELECTION:  'LENS_TRANSLATE_SELECTION',
+  LENS_APPLY_IN_PLACE:         'LENS_APPLY_IN_PLACE',
+  LENS_REVERT_IN_PLACE:        'LENS_REVERT_IN_PLACE',
+  LENS_CLEAR_SCAN:             'LENS_CLEAR_SCAN',
+  LENS_DEREGISTER_CHUNKS:      'LENS_DEREGISTER_CHUNKS',
+  LENS_GET_IN_PLACE_STATE:     'LENS_GET_IN_PLACE_STATE',
+  LENS_IN_PLACE_STATE:         'LENS_IN_PLACE_STATE',
+  LENS_TRANSLATE_SELECTION:    'LENS_TRANSLATE_SELECTION',
 };
 
 const sidebarChannels = new Map();
@@ -49,6 +54,7 @@ const POST_INJECT_RETRY_DELAY_MS = 120;
 const SIDEBAR_CHANNEL_TTL_MS = 60_000;
 const SIDEBAR_CHANNEL_INDEX_KEY = 'sidebarChannelIds';
 const SIDEBAR_CHANNEL_KEY_PREFIX = 'sidebarChannel:';
+const PENDING_SELECTION_KEY = 'pendingSelectionTranslation';
 
 function debugWarn(...args) {
   if (DEBUG) {
@@ -112,6 +118,16 @@ async function sendMessageWithRetry(tabId, payload, attempts = 1, delayMs = 0) {
     }
   }
   throw lastError || new Error('Failed to send tab message');
+}
+
+async function openPopupWithPendingText(text) {
+  await chrome.storage.session.set({
+    [PENDING_SELECTION_KEY]: {
+      text,
+      createdAt: Date.now(),
+    },
+  });
+  await chrome.action.openPopup();
 }
 
 async function ensureContentInjected(tabId) {
@@ -302,6 +318,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   // Cap to avoid sending enormous payloads to the translation API
   const text = rawText.slice(0, 4000);
 
+  let useSidebar = false;
+  try {
+    const d = await chrome.storage.local.get('viewMode');
+    useSidebar = d.viewMode === 'sidepanel';
+  } catch (e) {
+    debugWarn('Failed to read viewMode for context menu translation', e);
+  }
+
+  if (!useSidebar) {
+    try {
+      await openPopupWithPendingText(text);
+    } catch (e) {
+      debugWarn('OPEN_POPUP_WITH_PENDING failed', e);
+    }
+    return;
+  }
+
   try {
     await sendMessageWithRetry(tab.id, { type: MSG.OPEN_SIDEBAR_WITH_PENDING, text });
   } catch (e) {
@@ -395,19 +428,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })();
       return true;
 
-    case MSG.SET_BADGE:
-      chrome.action.setBadgeText({ text: msg.text || '' });
-      chrome.action.setBadgeBackgroundColor({ color: '#6366f1' });
-      break;
-
-    case MSG.CLEAR_BADGE:
-      chrome.action.setBadgeText({ text: '' });
-      break;
-
     case MSG.SET_CONTEXT_MENU:
       chrome.contextMenus.update('lens-translate-selection',
         { visible: !!msg.enabled }).catch(e => debugWarn('Failed to update context menu visibility', e));
       break;
+
+    case MSG.OPEN_POPUP_WITH_PENDING:
+      openPopupWithPendingText(String(msg.text || '').slice(0, 4000))
+        .then(() => sendResponse({ ok: true }))
+        .catch(e => {
+          debugWarn('Failed to open popup with pending text', e);
+          sendResponse({ ok: false });
+        });
+      return true;
 
     case MSG.CREATE_SIDEBAR_CHANNEL: {
       (async () => {

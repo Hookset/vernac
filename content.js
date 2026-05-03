@@ -13,9 +13,6 @@
     'a', 'span', 'div', 'section', 'button',
   ].join(', ');
 
-  const BLOCK_CHILDREN = new Set(['P','H1','H2','H3','H4','H5','H6','LI',
-    'BLOCKQUOTE','TD','TH','FIGCAPTION','DT','DD','DIV','SECTION','ARTICLE']);
-
   const SKIP_ROLES = new Set(['navigation','banner','contentinfo','complementary',
     'search','toolbar','menubar','menu','dialog','alertdialog','status','log']);
 
@@ -65,6 +62,7 @@
     // Wrapper holds iframe + close strip
     const wrapper = document.createElement('div');
     wrapper.id = '__lens-sidebar-wrapper__';
+    wrapper.style.width = `${SIDEBAR_TOTAL_WIDTH_PX}px`;
 
     // Close strip on the left edge
     const closeStrip = document.createElement('button');
@@ -97,15 +95,9 @@
   async function closeSidebar() {
     if (!sidebarFrame) return;
 
-    // Stop watching for new content
-    stopWatchingForNewContent();
-    // Revert any in-place translations before losing the original HTML map
-    revertInPlace();
-    // Then clean up scan state and remaining highlight classes
-    clearScan();
-    document.querySelectorAll('.__lens-in-place__').forEach(el =>
-      el.classList.remove('__lens-in-place__')
-    );
+    // Match popup close behavior: remove scan UI but preserve in-place
+    // translations and original node snapshots for explicit revert later.
+    clearScanKeepInPlace();
     document.querySelectorAll('.__lens-chunk-active__').forEach(el =>
       el.classList.remove('__lens-chunk-active__')
     );
@@ -154,7 +146,7 @@
     path.setAttribute('d', 'M9 18l6-6-6-6');
     svg.appendChild(path);
     sidebarToggleTab.appendChild(svg);
-    sidebarToggleTab.addEventListener('click', () => openSidebar());
+    sidebarToggleTab.addEventListener('click', () => openSidebar().catch(() => {}));
     document.documentElement.appendChild(sidebarToggleTab);
   }
 
@@ -257,6 +249,14 @@
         clearScan();
         break;
 
+      case MSG.LENS_DEREGISTER_CHUNKS:
+        if (e.data.ids) deregisterChunks(e.data.ids);
+        break;
+
+      case MSG.LENS_GET_IN_PLACE_STATE:
+        sendToSidebar({ type: MSG.LENS_IN_PLACE_STATE, active: originalNodeMap.size > 0 });
+        break;
+
       case MSG.LENS_APPLY_IN_PLACE:
         if (e.data.translations) applyInPlace(e.data.translations);
         break;
@@ -313,6 +313,16 @@
     });
   }
 
+  function translateSelection(text) {
+    if (viewMode === 'sidepanel') {
+      translateInSidebar(text);
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: MSG.OPEN_POPUP_WITH_PENDING, text })
+      .catch(e => console.warn('[Vernac] Failed to open popup translation', e));
+  }
+
   // ── Floating button ────────────────────────────────────────────────────────
   function getOrCreateBtn() {
     if (floatingBtn) return floatingBtn;
@@ -352,7 +362,7 @@
     const text = lastText;
     if (!text) return;
     hideBtn();
-    translateInSidebar(text);
+    translateSelection(text);
   }
 
   // ── Selection listener ─────────────────────────────────────────────────────
@@ -395,8 +405,9 @@
       const role = el.getAttribute('role');
       if (role && SKIP_ROLES.has(role)) return false;
       if (CONTAINER_TAGS.has(el.tagName)) {
-        const hasBlockChild = Array.from(el.children).some(c => BLOCK_CHILDREN.has(c.tagName));
-        if (hasBlockChild) return false;
+        // Check the full subtree, not just direct children — catches custom
+        // elements (e.g. YouTube's <ytd-*>) that wrap block content at depth > 1.
+        if (el.querySelector('p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,figcaption,dt,dd,div,section,article')) return false;
       }
       const s = window.getComputedStyle(el);
       if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.1) return false;
@@ -454,16 +465,26 @@
     originalNodeMap.clear();
   }
 
+  // Remove specific chunks from the scan without clearing the whole page.
+  // Used to de-highlight same-language chunks on mixed-language pages.
+  function deregisterChunks(ids) {
+    const idSet = new Set(ids.map(Number));
+    scanChunks = scanChunks.filter(({ id, element }) => {
+      if (!idSet.has(id)) return true;
+      element.removeAttribute('data-lens-chunk');
+      element.classList.remove('__lens-chunk__', '__lens-chunk-active__', '__lens-in-place__');
+      element.removeEventListener('click', onPageChunkClick);
+      return false;
+    });
+  }
+
   function onPageChunkClick(e) {
     if (!scanChunks.length) return;
     const id = parseInt(e.currentTarget.getAttribute('data-lens-chunk'), 10);
     if (isNaN(id)) return;
     setActiveChunk(id);
-    // Notify sidebar if open, otherwise try background
     if (sidebarPort) {
       sendToSidebar({ type: MSG.LENS_CHUNK_CLICKED, chunkId: id });
-    } else {
-      chrome.runtime.sendMessage({ type: MSG.CHUNK_CLICKED, chunkId: id }).catch(() => {});
     }
   }
 
@@ -529,9 +550,30 @@
       if (targetEl) {
         targetEl.replaceChildren(...nodes.map(node => node.cloneNode(true)));
         targetEl.classList.remove('__lens-in-place__');
+        // When using the querySelector fallback (popup was previously closed,
+        // scanChunks is empty), remove the now-orphaned data-lens-chunk attribute.
+        if (!chunk) targetEl.removeAttribute('data-lens-chunk');
       }
     });
     originalNodeMap.clear();
+  }
+
+  // Clears scan UI (highlights, click listeners) without reverting in-place
+  // translations. Called when the popup/sidebar closes so the page looks clean
+  // but in-place content is preserved until the user explicitly reverts it.
+  function clearScanKeepInPlace() {
+    stopWatchingForNewContent();
+    scanChunks.forEach(({ id, element }) => {
+      element.classList.remove('__lens-chunk__', '__lens-chunk-active__');
+      element.removeEventListener('click', onPageChunkClick);
+      // Keep data-lens-chunk on in-place elements so revertInPlace() can still
+      // find them via querySelector fallback after scanChunks is cleared.
+      if (!originalNodeMap.has(id)) {
+        element.removeAttribute('data-lens-chunk');
+      }
+    });
+    scanChunks = [];
+    // originalNodeMap is intentionally kept for a future revert.
   }
 
   // ── New content detection (for Scan More) ────────────────────────────────────
@@ -583,15 +625,19 @@
   }
 
   // ── Messages from popup/background ────────────────────────────────────────
-  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (sender.id !== chrome.runtime.id) return;
     (async () => {
       try {
         switch (msg.type) {
           case MSG.SCAN_PAGE:        sendResponse({ chunks: scanPage() }); break;
           case MSG.SCAN_MORE_PAGE:   sendResponse({ chunks: scanPageNewOnly() }); break;
           case MSG.HIGHLIGHT_CHUNK:  setActiveChunk(msg.chunkId); sendResponse({ ok: true }); break;
-          case MSG.CLEAR_SCAN:       clearScan(); sendResponse({ ok: true }); break;
-          case MSG.APPLY_IN_PLACE:   applyInPlace(msg.translations); sendResponse({ ok: true }); break;
+          case MSG.CLEAR_SCAN:              clearScan(); sendResponse({ ok: true }); break;
+          case MSG.CLEAR_SCAN_KEEP_IN_PLACE: clearScanKeepInPlace(); sendResponse({ ok: true }); break;
+          case MSG.DEREGISTER_CHUNKS:   deregisterChunks(msg.ids || []); sendResponse({ ok: true }); break;
+          case MSG.GET_IN_PLACE_STATE:  sendResponse({ active: originalNodeMap.size > 0 }); break;
+          case MSG.APPLY_IN_PLACE:      applyInPlace(msg.translations); sendResponse({ ok: true }); break;
           case MSG.REVERT_IN_PLACE:  revertInPlace(); sendResponse({ ok: true }); break;
           case MSG.GET_SELECTION:    sendResponse({ text: window.getSelection()?.toString().trim() || '' }); break;
           case MSG.TOGGLE_SIDEBAR:   toggleSidebar(); sendResponse({ ok: true }); break;

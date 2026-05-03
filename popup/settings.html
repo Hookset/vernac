@@ -43,22 +43,6 @@
         Translation
       </button>
 
-      <button class="nav-item" data-section="behavior">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-        Behavior
-      </button>
-
-      <button class="nav-item" data-section="language">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
-        Language
-      </button>
-
       <div class="nav-section-title nav-gap">Info</div>
 
       <button class="nav-item" data-section="about">
@@ -84,7 +68,7 @@
     <!-- Appearance -->
     <div class="section active" id="section-appearance">
       <div class="section-title">Appearance</div>
-      <div class="section-subtitle">Customise how Vernac looks.</div>
+      <div class="section-subtitle">Customise how Vernac looks and behaves.</div>
 
       <div class="card">
         <div class="card-title">Theme</div>
@@ -121,12 +105,55 @@
           The quick brown fox jumps over the lazy dog. 狐が怠け者の犬を飛び越えた。
         </p>
       </div>
+
+      <div class="card">
+        <div class="card-title">Page Integration</div>
+        <label class="toggle-wrap" for="floating-toggle">
+          <div class="toggle-left">
+            <div class="row-label">Floating translate button</div>
+            <div class="row-desc">Show a translate button when text is selected on any page</div>
+          </div>
+          <div class="toggle-track">
+            <input type="checkbox" id="floating-toggle" role="switch" checked>
+            <span class="toggle-thumb"></span>
+          </div>
+        </label>
+        <label class="toggle-wrap" for="context-toggle">
+          <div class="toggle-left">
+            <div class="row-label">Context menu item</div>
+            <div class="row-desc">Add "Translate with Vernac" to the right-click menu on selected text</div>
+          </div>
+          <div class="toggle-track">
+            <input type="checkbox" id="context-toggle" role="switch" checked>
+            <span class="toggle-thumb"></span>
+          </div>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="card-title">View Mode</div>
+        <div class="row">
+          <div>
+            <div class="row-label">Open as</div>
+            <div class="row-desc">How the Vernac panel appears when you click the toolbar icon</div>
+          </div>
+          <div class="seg-ctrl" id="view-ctrl">
+            <button class="seg active" data-value="popup">Popup</button>
+            <button class="seg" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
+          </div>
+        </div>
+        <div class="row-col" id="sidepanel-note">
+          <div class="info-box">
+            Vernac uses an injected in-page sidebar in Firefox — behavior can vary by site layout.
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Translation -->
     <div class="section" id="section-translation">
       <div class="section-title">Translation</div>
-      <div class="section-subtitle">Configure your translation provider.</div>
+      <div class="section-subtitle">Configure your provider and translated language.</div>
 
       <div class="card">
         <div class="card-title">Active Provider</div>
@@ -174,64 +201,9 @@
           </p>
         </div>
       </div>
-    </div>
-
-    <!-- Behavior -->
-    <div class="section" id="section-behavior">
-      <div class="section-title">Behavior</div>
-      <div class="section-subtitle">Control how Vernac interacts with pages.</div>
 
       <div class="card">
-        <div class="card-title">Page Integration</div>
-        <label class="toggle-wrap" for="floating-toggle">
-          <div class="toggle-left">
-            <div class="row-label">Floating translate button</div>
-            <div class="row-desc">Show a translate button when text is selected on any page</div>
-          </div>
-          <div class="toggle-track">
-            <input type="checkbox" id="floating-toggle" role="switch" checked>
-            <span class="toggle-thumb"></span>
-          </div>
-        </label>
-        <label class="toggle-wrap" for="context-toggle">
-          <div class="toggle-left">
-            <div class="row-label">Context menu item</div>
-            <div class="row-desc">Add "Translate with Vernac" to the right-click menu on selected text</div>
-          </div>
-          <div class="toggle-track">
-            <input type="checkbox" id="context-toggle" role="switch" checked>
-            <span class="toggle-thumb"></span>
-          </div>
-        </label>
-      </div>
-
-      <div class="card">
-        <div class="card-title">View Mode</div>
-        <div class="row">
-          <div>
-            <div class="row-label">Open as</div>
-            <div class="row-desc">How the Vernac panel appears when you click the toolbar icon</div>
-          </div>
-          <div class="seg-ctrl" id="view-ctrl">
-            <button class="seg active" data-value="popup">Popup</button>
-            <button class="seg" data-value="sidepanel">Side Panel <span class="badge-beta">β</span></button>
-          </div>
-        </div>
-        <div class="row-col" id="sidepanel-note">
-          <div class="info-box">
-            Vernac uses an injected in-page sidebar in Firefox — behavior can vary by site layout.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Language -->
-    <div class="section" id="section-language">
-      <div class="section-title">Language</div>
-      <div class="section-subtitle">Set your default translation target.</div>
-
-      <div class="card">
-        <div class="card-title">Default Target Language</div>
+        <div class="card-title">Target Language</div>
         <div class="row">
           <div>
             <div class="row-label">Translate into</div>
@@ -401,11 +373,18 @@
         </div><!-- /RIGHT -->
 
       </div><!-- /2-col grid -->
+
+      <p class="about-support">
+        If this tool has helped you and you'd like to show support, you can do so
+        <a href="https://github.com/hookset/vernac#support" target="_blank" rel="noopener">here</a> ❤️
+      </p>
+
     </div>
 
   </main>
 </div>
 <script src="../shared/messages.js"></script>
+<script src="../shared/storage.js"></script>
 <script src="settings.js"></script>
 </body>
 </html>
