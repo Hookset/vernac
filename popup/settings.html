@@ -195,6 +195,16 @@
             <button id="key-save" class="micro-btn accent">Save</button>
           </div>
           <div id="key-status" class="key-status"></div>
+          <label class="toggle-wrap key-remember-wrap" for="deepl-remember">
+            <div class="toggle-left">
+              <div class="row-label">Remember this key on this device</div>
+              <div class="row-desc">Stores the key locally so DeepL stays active after restarting the browser</div>
+            </div>
+            <div class="toggle-track">
+              <input type="checkbox" id="deepl-remember" role="switch">
+              <span class="toggle-thumb"></span>
+            </div>
+          </label>
           <p class="hint">
             Free keys end in <code>:fx</code> · 500,000 characters/month free ·
             Get yours at <a href="https://www.deepl.com/account/summary" target="_blank" rel="noopener">deepl.com/account</a>
@@ -310,8 +320,9 @@
               </p>
               <p class="about-body-text">
                 All preferences are stored locally in your browser and never leave your device.
-                Your DeepL API key is stored only for the current browser session and is only
-                ever transmitted directly to DeepL's API.
+                Your DeepL API key is stored only for the current browser session unless you
+                choose to remember it on this device, and is only ever transmitted directly to
+                DeepL's API.
               </p>
               <p class="about-body-text">
                 No analytics. No telemetry. No third-party trackers.
@@ -339,7 +350,7 @@
                 </div>
                 <div>
                   <div class="about-mode-name">Selection Mode</div>
-                  <div class="hint about-mode-desc">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Vernac</em>. The result opens in a sidebar so you can read original and translation side by side.</div>
+                  <div class="hint about-mode-desc">Highlight text on any page — a Translate button appears. Click it or right-click and choose <em>Translate with Vernac</em>. Results open in your selected view mode: popup by default, or the in-page sidebar when enabled.</div>
                 </div>
                 <div>
                   <div class="about-mode-name">Scan Page</div>

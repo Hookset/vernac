@@ -6,6 +6,7 @@ const $ = id => document.getElementById(id);
 const S = {
   theme: 'dark', fontSize: 14, targetLang: 'en',
   viewMode: 'popup', deeplKey: '',
+  rememberDeeplKey: false,
   floatingBtn: true, contextMenu: true,
 };
 
@@ -23,6 +24,7 @@ async function load() {
   try {
     localPrefs = await chrome.storage.local.get([
       'deeplKey',
+      'rememberDeeplKey',
       'theme',
       'fontSize',
       'targetLang',
@@ -34,6 +36,7 @@ async function load() {
     if (localPrefs.fontSize) S.fontSize = Number(localPrefs.fontSize);
     if (localPrefs.targetLang) S.targetLang = localPrefs.targetLang;
     if (localPrefs.viewMode) S.viewMode = localPrefs.viewMode;
+    S.rememberDeeplKey = localPrefs.rememberDeeplKey === true;
     if (typeof localPrefs.floatingBtn !== 'undefined') S.floatingBtn = !!localPrefs.floatingBtn;
     if (typeof localPrefs.contextMenu !== 'undefined') S.contextMenu = !!localPrefs.contextMenu;
   } catch (e) {
@@ -75,6 +78,7 @@ function syncUI() {
   $('target-lang').value = S.targetLang;
   $('floating-toggle').checked = S.floatingBtn;
   $('context-toggle').checked = S.contextMenu;
+  $('deepl-remember').checked = S.rememberDeeplKey;
   if (S.deeplKey) {
     $('deepl-input').value = S.deeplKey;
     setKeyStatus('DeepL active', 'ok');
@@ -90,11 +94,14 @@ function updateProviderUI() {
   const info = $('provider-info');
 
   if (S.deeplKey) {
+    const storageText = S.rememberDeeplKey
+      ? 'stored locally on this device'
+      : 'stored only for this browser session';
     if (dot) { dot.classList.remove('dim'); dot.style.background = 'var(--success)'; }
     if (name) name.textContent = 'DeepL';
     if (sub) sub.textContent = 'Using your API key · Higher quality';
     if (pill) { pill.textContent = 'Active'; pill.className = 'provider-pill'; }
-    if (info) info.textContent = 'DeepL is active. Your key is stored only for this browser session and only sent to DeepL\'s API. Remove the key to switch back to Google Translate.';
+    if (info) info.textContent = `DeepL is active. Your key is ${storageText} and only sent to DeepL's API. Remove the key to switch back to Google Translate.`;
   } else {
     if (dot) { dot.classList.remove('dim'); }
     if (name) name.textContent = 'Google Translate';
@@ -181,6 +188,7 @@ function attachListeners() {
   $('key-save').addEventListener('click', saveKey);
   $('key-clear').addEventListener('click', clearKey);
   $('deepl-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
+  $('deepl-remember').addEventListener('change', updateRememberPreference);
 }
 
 async function saveKey() {
@@ -188,16 +196,47 @@ async function saveKey() {
   if (!key) { clearKey(); return; }
   if (key.length < 20) { setKeyStatus('Key looks too short - check and try again', 'err'); return; }
   S.deeplKey = key;
+  S.rememberDeeplKey = $('deepl-remember').checked;
   await chrome.storage.session.set({ deeplKey: key });
-  await chrome.storage.local.remove('deeplKey').catch(() => {});
+  if (S.rememberDeeplKey) {
+    await chrome.storage.local.set({ deeplKey: key, rememberDeeplKey: true });
+  } else {
+    await chrome.storage.local.set({ rememberDeeplKey: false });
+    await chrome.storage.local.remove('deeplKey').catch(() => {});
+  }
   setKeyStatus('Saved - DeepL is now active', 'ok');
+  updateProviderUI();
+}
+
+async function updateRememberPreference() {
+  S.rememberDeeplKey = $('deepl-remember').checked;
+
+  if (S.rememberDeeplKey && !S.deeplKey) {
+    await chrome.storage.local.set({ rememberDeeplKey: false });
+    $('deepl-remember').checked = false;
+    S.rememberDeeplKey = false;
+    setKeyStatus('Save a key before remembering it', 'err');
+    return;
+  }
+
+  if (S.rememberDeeplKey) {
+    await chrome.storage.local.set({ deeplKey: S.deeplKey, rememberDeeplKey: true });
+    setKeyStatus('Key will be remembered on this device', 'ok');
+  } else {
+    await chrome.storage.local.set({ rememberDeeplKey: false });
+    await chrome.storage.local.remove('deeplKey').catch(() => {});
+    setKeyStatus(S.deeplKey ? 'Key will clear when the browser closes' : '', '');
+  }
   updateProviderUI();
 }
 
 async function clearKey() {
   S.deeplKey = '';
+  S.rememberDeeplKey = false;
   $('deepl-input').value = '';
+  $('deepl-remember').checked = false;
   await chrome.storage.session.remove('deeplKey');
+  await chrome.storage.local.set({ rememberDeeplKey: false });
   await chrome.storage.local.remove('deeplKey').catch(() => {});
   setKeyStatus('Key removed - back to Google Translate', '');
   updateProviderUI();

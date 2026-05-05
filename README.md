@@ -46,16 +46,18 @@ vernac/
 |-- content.js             # Floating button, page scanning, sidebar bridge, highlights
 |-- content.css            # Styles injected into pages
 |-- shared/
-|   `-- messages.js        # Shared message constants
+|   |-- messages.js        # Shared message constants
+|   `-- storage.js         # DeepL key loading and migration helper
 |-- popup/
 |   |-- popup.html         # Popup/sidebar UI
 |   |-- popup.css          # Main UI styles
 |   |-- popup.js           # Translation, scan, settings, and sidebar logic
+|   |-- settings.css       # Settings page styles
 |   |-- settings.html      # Settings page
 |   |-- settings.js        # Settings behavior
 |   `-- theme-tokens.css   # Shared light/dark theme variables
 |-- scripts/
-|   `-- check-message-constants.ps1
+|   `-- check-message-constants.js
 `-- icons/                 # Extension icons
 ```
 
@@ -70,7 +72,7 @@ Vernac runs as a plain JavaScript browser extension with no build step.
 - `background.js` owns the context menu, toolbar action state, and browser message routing
 - `shared/messages.js` keeps message names consistent across extension contexts
 
-By default, Vernac uses Google's public translate endpoint. Users can switch to DeepL by saving their own API key in settings. DeepL keys are stored in browser session storage and clear when the browser closes.
+By default, Vernac uses Google's public translate endpoint. Users can switch to DeepL by saving their own API key in settings. DeepL keys are stored in browser session storage unless the user chooses to remember the key on this device.
 
 ---
 
@@ -80,7 +82,7 @@ By default, Vernac uses Google's public translate endpoint. Users can switch to 
 - No tracking
 - No account required
 - Preferences are stored locally in browser storage
-- DeepL keys are stored in session storage only
+- DeepL keys are stored in session storage by default, with optional local remember
 - Page text is sent only to the selected translation provider when you request translation
 
 ---

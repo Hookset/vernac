@@ -79,6 +79,7 @@ async function loadPrefs() {
   try {
     localPrefs = await chrome.storage.local.get([
       'deeplKey',
+      'rememberDeeplKey',
       'fontSize',
       'theme',
       'targetLang',
@@ -205,7 +206,7 @@ async function translateDeepL(text, targetLang, apiKey, trackScan = false) {
   const endpoint = isFree
     ? 'https://api-free.deepl.com/v2/translate'
     : 'https://api.deepl.com/v2/translate';
-  const deeplLang = targetLang === 'zh' ? 'ZH-HANS' : targetLang.toUpperCase().replace('-', '_');
+  const deeplLang = getDeepLTargetLang(targetLang);
 
   const resp = await fetchWithTimeout(endpoint, {
     method: 'POST',
@@ -228,6 +229,12 @@ async function translateDeepL(text, targetLang, apiKey, trackScan = false) {
     translated: result.text,
     detectedLang: result.detected_source_language?.toLowerCase() || null,
   };
+}
+
+function getDeepLTargetLang(targetLang) {
+  if (targetLang === 'zh') return 'ZH-HANS';
+  if (targetLang === 'zh-TW') return 'ZH-HANT';
+  return targetLang.toUpperCase().replace('-', '_');
 }
 
 function attachListeners() {

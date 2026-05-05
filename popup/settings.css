@@ -353,9 +353,17 @@ select:focus { border-color: var(--accent); }
 }
 .key-input-row input:focus { border-color: var(--accent); }
 
+.key-remember-wrap {
+  padding: 8px 0;
+  border-bottom: none;
+}
+
 .key-status {
   font-size: 12px;
   color: var(--text3);
+  min-height: 0;
+}
+.key-status:not(:empty) {
   min-height: 18px;
 }
 .key-status.ok  { color: var(--success); }
