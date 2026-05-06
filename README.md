@@ -2,7 +2,7 @@
 
 A Firefox-first browser extension for translating text on any page. Paste text, translate selections, scan full pages, and optionally use your own DeepL key.
 
-> Currently pending approval - available soon on the [Firefox Add-ons store](https://addons.mozilla.org/en-US/firefox/) · GPL v3 License
+> Available on the [Firefox Add-ons store](https://addons.mozilla.org/en-US/firefox/addon/vernac/) · GPL v3 License
 
 ---
 
@@ -26,7 +26,7 @@ A Firefox-first browser extension for translating text on any page. Paste text, 
 ## Installation
 
 ### From the Firefox Add-ons store
-Search for **Vernac** on [addons.mozilla.org](https://addons.mozilla.org).
+Search for **Vernac** on [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/vernac/).
 
 ### Load locally (for development)
 
